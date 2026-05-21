@@ -1,17 +1,17 @@
 import React, { useState } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import { motion } from 'motion/react'
-import { Settings, Save, X, CheckCircle2, Server, Camera, Weight, MapPin, Tag, CreditCard } from 'lucide-react'
+import { Settings, Save, X, CheckCircle2, Server, Camera, Weight, Tag, CreditCard, Globe } from 'lucide-react'
 import { RootState } from '../../store'
 import {
   setServerAddressURL,
   setUnisonAddressURL,
   setRealSenseAddressURL,
   setCasPD2AddressURL,
-  setCassAddressURL,
   setLabelAddressURL,
   setPaymentAddressURL,
-  setUnit
+  setUnit,
+  setGoogleMapsApiKey
 } from '../../features/config/configSlice'
 import ControlledInput from '../../contexts/KeyboardProvider/ControlledInput'
 
@@ -52,12 +52,6 @@ const FIELDS: Field[] = [
     description: 'Integrated scale weight'
   },
   {
-    label: 'CASS Address Validation',
-    key: 'cassAddressURL',
-    icon: <MapPin size={18} />,
-    description: 'USPS CASS API endpoint'
-  },
-  {
     label: 'Label / Postage API',
     key: 'labelAddressURL',
     icon: <Tag size={18} />,
@@ -68,6 +62,12 @@ const FIELDS: Field[] = [
     key: 'paymentAddressURL',
     icon: <CreditCard size={18} />,
     description: 'EMV / NFC terminal service'
+  },
+  {
+    label: 'Google Maps API Key',
+    key: 'googleMapsApiKey',
+    icon: <Globe size={18} />,
+    description: 'Places Autocomplete & Address Validation'
   }
 ]
 
@@ -80,10 +80,10 @@ const ConfigPage: React.FC<ConfigPageProps> = ({ onClose }) => {
     unisonAddressURL: config.unisonAddressURL,
     realSenseAddressURL: config.realSenseAddressURL,
     casPD2AddressURL: config.casPD2AddressURL,
-    cassAddressURL: config.cassAddressURL,
     labelAddressURL: config.labelAddressURL,
     paymentAddressURL: config.paymentAddressURL,
-    unit: config.unit
+    unit: config.unit,
+    googleMapsApiKey: config.googleMapsApiKey
   })
 
   const [saved, setSaved] = useState(false)
@@ -93,10 +93,10 @@ const ConfigPage: React.FC<ConfigPageProps> = ({ onClose }) => {
     dispatch(setUnisonAddressURL(values.unisonAddressURL))
     dispatch(setRealSenseAddressURL(values.realSenseAddressURL))
     dispatch(setCasPD2AddressURL(values.casPD2AddressURL))
-    dispatch(setCassAddressURL(values.cassAddressURL))
     dispatch(setLabelAddressURL(values.labelAddressURL))
     dispatch(setPaymentAddressURL(values.paymentAddressURL))
     dispatch(setUnit(values.unit as 'lb' | 'kg'))
+    dispatch(setGoogleMapsApiKey(values.googleMapsApiKey))
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
   }

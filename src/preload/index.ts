@@ -18,7 +18,9 @@ const api = {
       console.error('setConfig error', e)
       return null
     }
-  }
+  },
+  googleMapsGet: (opts: { url: string; method?: string; headers?: Record<string, string>; body?: string }): Promise<unknown> =>
+    ipcRenderer.invoke('google-maps-get', opts)
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

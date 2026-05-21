@@ -10,14 +10,14 @@ export interface ConfigState {
   realSenseAddressURL: string
   /** Scale / CasPD2 weight service */
   casPD2AddressURL: string
-  /** USPS CASS address-validation service */
-  cassAddressURL: string
   /** USPS Label / postage API */
   labelAddressURL: string
   /** Payment terminal service */
   paymentAddressURL: string
   /** Weight unit displayed to the customer */
   unit: 'lb' | 'kg'
+  /** Google Maps API key for Places Autocomplete & Address Validation */
+  googleMapsApiKey: string
 }
 
 const initialState: ConfigState = defaultConfig as ConfigState
@@ -41,9 +41,6 @@ const configSlice = createSlice({
     setCasPD2AddressURL(state, action: PayloadAction<string>) {
       state.casPD2AddressURL = action.payload
     },
-    setCassAddressURL(state, action: PayloadAction<string>) {
-      state.cassAddressURL = action.payload
-    },
     setLabelAddressURL(state, action: PayloadAction<string>) {
       state.labelAddressURL = action.payload
     },
@@ -52,6 +49,9 @@ const configSlice = createSlice({
     },
     setUnit(state, action: PayloadAction<'lb' | 'kg'>) {
       state.unit = action.payload
+    },
+    setGoogleMapsApiKey(state, action: PayloadAction<string>) {
+      state.googleMapsApiKey = action.payload
     }
   }
 })
@@ -65,7 +65,8 @@ export const {
   setCassAddressURL,
   setLabelAddressURL,
   setPaymentAddressURL,
-  setUnit
+  setUnit,
+  setGoogleMapsApiKey
 } = configSlice.actions
 
 export default configSlice.reducer

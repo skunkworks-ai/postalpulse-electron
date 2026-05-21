@@ -1,8 +1,7 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, net } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 
-// Use require() for electron-store to avoid ESM/CJS interop issues
 const Store = require('electron-store') as any
 
 type ConfigState = Record<string, unknown>
@@ -74,6 +73,40 @@ app.whenReady().then(() => {
     const merged = { ...configStore.store, ...newConfig }
     configStore.set(merged)
     return configStore.store
+  })
+
+  // Proxy Google Maps API requests through the main process to avoid
+  // CORS / CSP restrictions in both dev and production builds.
+  type MapsRequestOpts = {
+    url: string
+    method?: string
+    headers?: Record<string, string>
+    body?: string
+  }
+  ipcMain.handle('google-maps-get', (_event, opts: MapsRequestOpts): Promise<unknown> => {
+    return new Promise((resolve, reject) => {
+      const { url, method = 'GET', headers = {}, body } = opts
+      const request = net.request({ url, method })
+      for (const [key, val] of Object.entries(headers)) {
+        request.setHeader(key, val)
+      }
+      let responseBody = ''
+      request.on('response', (response) => {
+        response.on('data', (chunk) => {
+          responseBody += chunk.toString()
+        })
+        response.on('end', () => {
+          try {
+            resolve(JSON.parse(responseBody))
+          } catch {
+            reject(new Error('Failed to parse Google Maps response'))
+          }
+        })
+      })
+      request.on('error', (err) => reject(err))
+      if (body) request.write(body)
+      request.end()
+    })
   })
 
   createWindow()
