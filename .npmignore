@@ -1,0 +1,26 @@
+# Source files not needed in the published package
+src/
+resources/
+build/
+out/
+dist/
+.vite/
+
+# Config / tooling
+.env*
+*.config.ts
+*.config.js
+tsconfig*.json
+electron-builder.yml
+electron.vite.config.ts
+eslint.config.mjs
+.eslintignore
+.prettierrc
+.editorconfig
+
+# Dev & CI
+.github/
+.vscode/
+coverage/
+*.log
+node_modules/

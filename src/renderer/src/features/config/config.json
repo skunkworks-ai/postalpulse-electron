@@ -1,0 +1,10 @@
+{
+  "serverAddressURL": "http://localhost:8000",
+  "unisonAddressURL": "http://localhost:7070",
+  "realSenseAddressURL": "http://localhost:6060",
+  "casPD2AddressURL": "http://localhost:3030",
+  "cassAddressURL": "http://localhost:4040",
+  "labelAddressURL": "http://localhost:5050",
+  "paymentAddressURL": "http://localhost:9090",
+  "unit": "lb"
+}

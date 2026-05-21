@@ -1,0 +1,12 @@
+# Build outputs
+out/
+dist/
+.vite/
+
+# Dependencies
+node_modules/
+
+# electron-builder artifacts
+build/linux-unpacked/
+build/win-unpacked/
+build/mac/
