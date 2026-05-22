@@ -3,6 +3,7 @@ import { motion } from 'motion/react'
 import { Move } from 'lucide-react'
 import { BOX_SPECS } from '../constants'
 import type { ParcelData } from '../types'
+import KioskButton from '../components/KioskButton/KioskButton'
 
 interface DetectionStepProps {
   onSuccess: (parcel: ParcelData) => void
@@ -90,12 +91,12 @@ const DetectionStep = ({ onSuccess }: DetectionStepProps): React.JSX.Element => 
                     Please align your parcel with the markings on the scale surface.
                   </p>
                 </div>
-                <button
+                <KioskButton
                   onClick={resetDetection}
                   className="bg-[#003366] text-white px-8 py-3 rounded-xl font-black uppercase text-sm shadow-lg hover:bg-black transition-all"
                 >
                   RESTART SCAN
-                </button>
+                </KioskButton>
               </div>
             ) : (
               <div className="relative w-full h-full bg-[#001122]">
@@ -129,12 +130,12 @@ const DetectionStep = ({ onSuccess }: DetectionStepProps): React.JSX.Element => 
       </div>
 
       {!detectionError && (
-        <button
+        <KioskButton
           onClick={() => setDetectionError(true)}
           className="text-slate-300 hover:text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] cursor-pointer transition-colors"
         >
           Debug: Trigger Visibility Error
-        </button>
+        </KioskButton>
       )}
     </motion.div>
   )

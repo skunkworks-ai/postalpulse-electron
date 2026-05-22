@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { RefreshCcw, CreditCard } from 'lucide-react'
 import { motion } from 'motion/react'
 import PriorityStripes from '../components/PriorityStripes'
+import KioskButton from '../components/KioskButton/KioskButton'
 import type { ParcelData } from '../types'
 
 interface PaymentStepProps {
@@ -82,12 +83,12 @@ const PaymentStep = ({ detectedParcel, onSuccess, onBack }: PaymentStepProps): R
               </p>
             </div>
 
-            <button
+            <KioskButton
               onClick={handlePayment}
-              className="w-full bg-slate-900 text-white py-5 rounded-xl font-bold uppercase text-xs tracking-widest shadow-2xl shadow-slate-900/20 transition-all hover:bg-slate-800 active:scale-95 cursor-pointer"
+              className="w-full bg-slate-900 text-white py-5 rounded-xl font-bold uppercase text-xs tracking-widest shadow-2xl shadow-slate-900/20 transition-all hover:bg-slate-800 cursor-pointer"
             >
               SIMULATE ENCRYPTION
-            </button>
+            </KioskButton>
           </motion.div>
         ) : (
           <div className="py-12">
@@ -102,12 +103,12 @@ const PaymentStep = ({ detectedParcel, onSuccess, onBack }: PaymentStepProps): R
         )}
 
         {!isProcessing && (
-          <button
+          <KioskButton
             onClick={onBack}
             className="mt-8 text-slate-400 font-bold uppercase text-[10px] tracking-widest hover:text-rose-500 transition-colors cursor-pointer"
           >
             De-authorize Transaction
-          </button>
+          </KioskButton>
         )}
       </div>
     </motion.div>

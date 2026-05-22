@@ -1,8 +1,10 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useSelector } from 'react-redux'
 import { ChevronRight, Search, MapPin, Edit2, Undo2, Truck, CheckCircle2, AlertCircle } from 'lucide-react'
 import { motion } from 'motion/react'
 import ControlledInput from '../contexts/KeyboardProvider/ControlledInput'
+import KioskButton from '../components/KioskButton/KioskButton'
 import { STEPS, MOCK_ADDRESSES, MOCK_GOOGLE_MAPS } from '../constants'
 import type { AddressRecord, AddressSuggestion } from '../types'
 import type { RootState } from '../store'
@@ -15,6 +17,7 @@ interface AddressStepProps {
   setRecipient: React.Dispatch<React.SetStateAction<AddressRecord>>
   onBack: () => void
   onNext: () => void
+  initialManualEntry?: boolean
 }
 
 const AddressStep = ({
@@ -24,13 +27,25 @@ const AddressStep = ({
   recipient,
   setRecipient,
   onBack,
-  onNext
+  onNext,
+  initialManualEntry = false
 }: AddressStepProps): React.JSX.Element => {
-  const [isManualEntry, setIsManualEntry] = useState(false)
+  const [isManualEntry, setIsManualEntry] = useState(initialManualEntry)
   const [addressSearch, setAddressSearch] = useState('')
   const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([])
   const [isValidating, setIsValidating] = useState(false)
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const searchWrapperRef = useRef<HTMLDivElement>(null)
+  const [dropdownRect, setDropdownRect] = useState<{ top: number; left: number; width: number } | null>(null)
+
+  useEffect(() => {
+    if (suggestions.length > 0 && searchWrapperRef.current) {
+      const rect = searchWrapperRef.current.getBoundingClientRect()
+      setDropdownRect({ top: rect.bottom + 8, left: rect.left, width: rect.width })
+    } else {
+      setDropdownRect(null)
+    }
+  }, [suggestions.length])
 
   const googleMapsApiKey = useSelector((state: RootState) => state.config.googleMapsApiKey)
 
@@ -86,8 +101,12 @@ const AddressStep = ({
     state: string,
     zip: string
   ): Promise<{ street: string; city: string; state: string; zip: string; isValidated: boolean } | null> => {
-    if (!googleMapsApiKey && !MOCK_GOOGLE_MAPS) return null
+    if (!googleMapsApiKey && !MOCK_GOOGLE_MAPS) {
+      console.warn('[CASS] Skipped — no API key configured and MOCK_GOOGLE_MAPS is false')
+      return null
+    }
     if (MOCK_GOOGLE_MAPS) {
+      console.log('[CASS] Mock mode — returning uppercased address, isValidated: true')
       return {
         street: street.toUpperCase(),
         city: city.toUpperCase(),
@@ -108,7 +127,9 @@ const AddressStep = ({
             administrativeArea: state,
             postalCode: zip,
             regionCode: 'US'
-          }
+          },
+          // CRITICAL FIX: You must explicitly request CASS data from Google
+          enableUspsCass: true 
         })
       })) as {
         result?: {
@@ -133,12 +154,19 @@ const AddressStep = ({
           }
         }
       }
+      console.log('[CASS] Full response:', JSON.stringify(data, null, 2))
       const usps = data.result?.uspsData
-      if (usps?.cassProcessed) {
+      
+      // CRITICAL FIX: Check both cassProcessed AND DPV status
+      // 'Y' = Confirmed delivery point, 'S' = Confirmed primary address but sub-premise (suite/apt) is missing/invalid
+      const isDpvValid = usps?.dpvConfirmation === 'Y' || usps?.dpvConfirmation === 'S'
+
+      if (usps?.cassProcessed && isDpvValid) {
         const std = usps.standardizedAddress ?? {}
         const fullZip = std.zipCodeExtension
           ? `${std.zipCode}-${std.zipCodeExtension}`
           : (std.zipCode ?? zip)
+        console.log('[CASS] Validated — cassProcessed: true, dpvConfirmation:', usps.dpvConfirmation)
         return {
           street: std.firstAddressLine ?? street,
           city: std.city ?? city,
@@ -147,8 +175,16 @@ const AddressStep = ({
           isValidated: true
         }
       }
+      if (usps && !usps.cassProcessed) {
+        console.warn('[CASS] Not validated — uspsData present but cassProcessed is false/missing. dpvConfirmation:', usps.dpvConfirmation)
+      } else if (usps && !isDpvValid) {
+        console.warn('[CASS] Not validated — CASS processed but DPV confirmation failed. dpvConfirmation:', usps.dpvConfirmation)
+      } else if (!data.result?.uspsData) {
+        console.warn('[CASS] Not validated — no uspsData in response. Full result:', JSON.stringify(data.result, null, 2))
+      }
       const postal = data.result?.address?.postalAddress
       if (postal) {
+        console.log('[CASS] Falling back to postalAddress (not CASS certified)')
         return {
           street: postal.addressLines?.[0] ?? street,
           city: postal.locality ?? city,
@@ -157,8 +193,10 @@ const AddressStep = ({
           isValidated: false
         }
       }
+      console.warn('[CASS] No uspsData or postalAddress in response — returning null')
       return null
-    } catch {
+    } catch (err) {
+      console.error('[CASS] Request failed:', err)
       return null
     }
   }
@@ -222,7 +260,7 @@ const AddressStep = ({
       exit={{ opacity: 0, x: -30 }}
       className="flex-1 flex flex-col items-center justify-center p-6"
     >
-      <div className="bg-white w-full max-w-2xl rounded-[32px] p-12 shadow-2xl shadow-slate-200/50 border border-slate-200 relative overflow-hidden">
+      <div className="bg-white w-full max-w-2xl rounded-[32px] shadow-2xl shadow-slate-200/50 border border-slate-200 relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-1 bg-slate-100">
           <motion.div
             className="h-full bg-[#003366]"
@@ -231,6 +269,7 @@ const AddressStep = ({
           />
         </div>
 
+        <div className="p-12">
         <div className="flex items-center justify-between mb-12">
           <div className="flex items-center gap-5">
             <div
@@ -264,7 +303,7 @@ const AddressStep = ({
           </div>
 
           {!isManualEntry ? (
-            <div className="space-y-2 relative">
+            <div className="space-y-2" ref={searchWrapperRef}>
               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
                 Global Address Registry
               </label>
@@ -281,14 +320,15 @@ const AddressStep = ({
                 />
               </div>
 
-              {suggestions.length > 0 && (
+              {suggestions.length > 0 && dropdownRect && createPortal(
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="absolute top-full left-0 w-full mt-2 bg-white rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-slate-200 overflow-hidden z-[100]"
+                  style={{ position: 'fixed', top: dropdownRect.top, left: dropdownRect.left, width: dropdownRect.width, zIndex: 9999 }}
+                  className="bg-white rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-slate-200 overflow-hidden"
                 >
                   {suggestions.map((addr, i) => (
-                    <button
+                    <KioskButton
                       key={i}
                       onClick={() => selectAddress(addr)}
                       className="w-full p-4 flex items-center gap-4 hover:bg-slate-50 border-b border-slate-100 text-left transition-colors cursor-pointer group"
@@ -299,17 +339,18 @@ const AddressStep = ({
                       <span className="font-semibold text-slate-600 group-hover:text-slate-900 text-sm transition-colors">
                         {addr.full}
                       </span>
-                    </button>
+                    </KioskButton>
                   ))}
-                </motion.div>
+                </motion.div>,
+                document.body
               )}
 
-              <button
+              <KioskButton
                 onClick={() => setIsManualEntry(true)}
                 className="text-[10px] font-bold text-indigo-600 uppercase hover:text-indigo-700 flex items-center gap-1.5 mt-2 transition-all cursor-pointer"
               >
                 <Edit2 size={10} /> Override Manual
-              </button>
+              </KioskButton>
             </div>
           ) : (
             <motion.div
@@ -321,12 +362,12 @@ const AddressStep = ({
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                   Manual Entry
                 </span>
-                <button
+                <KioskButton
                   onClick={() => setIsManualEntry(false)}
                   className="text-[10px] font-bold text-indigo-600 uppercase hover:text-indigo-700 flex items-center gap-1.5 transition-all cursor-pointer"
                 >
                   <Search size={10} /> Switch to Search
-                </button>
+                </KioskButton>
               </div>
               <div className="md:col-span-3 space-y-1.5">
                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
@@ -381,7 +422,7 @@ const AddressStep = ({
                 />
               </div>
               <div className="md:col-span-3">
-                <button
+                <KioskButton
                   onClick={async () => {
                     if (!current.street || !current.city || !current.state) return
                     setIsValidating(true)
@@ -393,7 +434,7 @@ const AddressStep = ({
                   className="w-full py-3 rounded-xl font-black uppercase text-[10px] tracking-widest border border-[#003366] text-[#003366] hover:bg-[#003366] hover:text-white disabled:opacity-30 transition-all cursor-pointer"
                 >
                   {isValidating ? 'Validating...' : 'CASS Validate'}
-                </button>
+                </KioskButton>
               </div>
             </motion.div>
           )}
@@ -439,20 +480,21 @@ const AddressStep = ({
         </div>
 
         <div className="mt-12 flex gap-4">
-          <button
+          <KioskButton
             onClick={onBack}
             className="flex-1 bg-white text-slate-500 py-4 rounded-xl font-bold uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 border border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer"
           >
             Return
-          </button>
-          <button
+          </KioskButton>
+          <KioskButton
             onClick={onNext}
             disabled={!current.name || !current.street}
             className="flex-[2] bg-[#003366] hover:bg-black disabled:opacity-30 text-white py-4 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-xl flex items-center justify-center gap-3 transition-all cursor-pointer"
           >
             {isSender ? 'Confirm Origin' : 'Lock Node'}{' '}
             <ChevronRight size={16} />
-          </button>
+          </KioskButton>
+        </div>
         </div>
       </div>
     </motion.div>

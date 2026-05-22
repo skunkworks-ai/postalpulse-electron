@@ -16,6 +16,7 @@ import type { AddressRecord, ParcelData } from './types'
 const App = (): React.JSX.Element => {
   const [currentStep, setCurrentStep] = useState(STEPS.WELCOME)
   const [detectedParcel, setDetectedParcel] = useState<ParcelData | null>(null)
+  const [manualAddressEntry, setManualAddressEntry] = useState(false)
 
   // Config page state
   const [showConfig, setShowConfig] = useState(false)
@@ -158,12 +159,23 @@ const App = (): React.JSX.Element => {
               setSender={setSender}
               recipient={recipient}
               setRecipient={setRecipient}
-              onBack={() =>
-                setCurrentStep(currentStep === STEPS.SENDER ? STEPS.CONFIRMATION : STEPS.SENDER)
-              }
-              onNext={() =>
-                setCurrentStep(currentStep === STEPS.SENDER ? STEPS.RECIPIENT : STEPS.VERIFY)
-              }
+              initialManualEntry={manualAddressEntry}
+              onBack={() => {
+                if (currentStep === STEPS.SENDER) {
+                  setManualAddressEntry(false)
+                  setCurrentStep(STEPS.CONFIRMATION)
+                } else {
+                  setCurrentStep(STEPS.SENDER)
+                }
+              }}
+              onNext={() => {
+                if (currentStep === STEPS.SENDER) {
+                  setCurrentStep(STEPS.RECIPIENT)
+                } else {
+                  setManualAddressEntry(false)
+                  setCurrentStep(STEPS.VERIFY)
+                }
+              }}
             />
           )}
 
@@ -175,8 +187,8 @@ const App = (): React.JSX.Element => {
               detectedParcel={detectedParcel}
               onBack={() => setCurrentStep(STEPS.RECIPIENT)}
               onNext={() => setCurrentStep(STEPS.PAYMENT)}
-              onEditSender={() => setCurrentStep(STEPS.SENDER)}
-              onEditRecipient={() => setCurrentStep(STEPS.RECIPIENT)}
+              onEditSender={() => { setManualAddressEntry(true); setCurrentStep(STEPS.SENDER) }}
+              onEditRecipient={() => { setManualAddressEntry(true); setCurrentStep(STEPS.RECIPIENT) }}
             />
           )}
 

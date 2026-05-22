@@ -1,6 +1,7 @@
 import React from 'react'
 import { ChevronRight, Navigation, Mail } from 'lucide-react'
 import { motion } from 'motion/react'
+import KioskButton from '../components/KioskButton/KioskButton'
 
 interface WelcomeStepProps {
   onStart: () => void
@@ -28,12 +29,12 @@ const WelcomeStep = ({ onStart }: WelcomeStepProps): React.JSX.Element => (
           </p>
         </div>
 
-        <button
+        <KioskButton
           onClick={onStart}
-          className="w-fit bg-[#003366] hover:bg-[#002244] text-white px-10 py-5 rounded-xl font-black text-xl flex items-center gap-4 transition-all hover:translate-x-2 active:scale-95 shadow-xl shadow-blue-900/20"
+          className="w-fit bg-[#003366] hover:bg-[#002244] text-white px-10 py-5 rounded-xl font-black text-xl flex items-center gap-4 transition-all hover:translate-x-2 shadow-xl shadow-blue-900/20"
         >
           START SHIPMENT <ChevronRight strokeWidth={3} />
-        </button>
+        </KioskButton>
       </div>
 
       <div className="hidden md:block w-[40%] bg-[#F1F5F9] relative overflow-hidden p-12 flex flex-col justify-center border-l border-slate-100">

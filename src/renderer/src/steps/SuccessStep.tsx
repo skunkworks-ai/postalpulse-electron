@@ -1,6 +1,7 @@
 import React from 'react'
 import { CheckCircle2, RefreshCcw, Printer, Mail, QrCode, FileText } from 'lucide-react'
 import { motion } from 'motion/react'
+import KioskButton from '../components/KioskButton/KioskButton'
 
 interface SuccessStepProps {
   onReset: () => void
@@ -78,22 +79,22 @@ const SuccessStep = ({ onReset }: SuccessStepProps): React.JSX.Element => (
         </div>
 
         <div className="grid grid-cols-1 gap-3">
-          <button className="w-full bg-white/10 hover:bg-white/20 border-2 border-white/10 py-4 rounded-xl font-black text-white text-[10px] uppercase tracking-widest flex items-center justify-center gap-3 transition-all active:scale-95">
+          <KioskButton className="w-full bg-white/10 hover:bg-white/20 border-2 border-white/10 py-4 rounded-xl font-black text-white text-[10px] uppercase tracking-widest flex items-center justify-center gap-3 transition-all">
             <Mail size={18} className="text-[#E71921]" /> Dispatch via Email
-          </button>
-          <button className="w-full bg-white/10 hover:bg-white/20 border-2 border-white/10 py-4 rounded-xl font-black text-white text-[10px] uppercase tracking-widest flex items-center justify-center gap-3 transition-all active:scale-95">
+          </KioskButton>
+          <KioskButton className="w-full bg-white/10 hover:bg-white/20 border-2 border-white/10 py-4 rounded-xl font-black text-white text-[10px] uppercase tracking-widest flex items-center justify-center gap-3 transition-all">
             <QrCode size={18} className="text-[#E71921]" /> Dynamic QR Scan
-          </button>
+          </KioskButton>
         </div>
       </motion.div>
     </div>
 
-    <button
+    <KioskButton
       onClick={onReset}
-      className="w-full max-w-md bg-[#003366] text-white py-6 rounded-2xl font-black uppercase text-[11px] tracking-[0.3em] shadow-2xl shadow-blue-900/40 flex items-center justify-center gap-3 transition-all hover:bg-black active:scale-95 cursor-pointer"
+      className="w-full max-w-md bg-[#003366] text-white py-6 rounded-2xl font-black uppercase text-[11px] tracking-[0.3em] shadow-2xl shadow-blue-900/40 flex items-center justify-center gap-3 transition-all hover:bg-black cursor-pointer"
     >
       TERMINATE SESSION <RefreshCcw size={18} />
-    </button>
+    </KioskButton>
   </motion.div>
 )
 

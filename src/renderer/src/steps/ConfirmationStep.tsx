@@ -2,6 +2,7 @@ import React from 'react'
 import { ChevronRight, Scan, Weight, Maximize } from 'lucide-react'
 import { motion } from 'motion/react'
 import type { ParcelData } from '../types'
+import KioskButton from '../components/KioskButton/KioskButton'
 
 interface ConfirmationStepProps {
   detectedParcel: ParcelData | null
@@ -90,18 +91,18 @@ const ConfirmationStep = ({
         </div>
 
         <div className="grid grid-cols-2 gap-4 mt-6">
-          <button
+          <KioskButton
             onClick={onDiscard}
             className="bg-white text-slate-600 py-4 rounded-xl font-black uppercase text-[10px] tracking-widest border-2 border-slate-200 hover:border-[#E71921] hover:text-[#E71921] transition-all cursor-pointer"
           >
             Discard
-          </button>
-          <button
+          </KioskButton>
+          <KioskButton
             onClick={onConfirm}
             className="bg-[#003366] text-white py-4 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-xl shadow-blue-900/10 flex items-center justify-center gap-2 hover:bg-[#002244] transition-all cursor-pointer"
           >
             Set Destination <ChevronRight size={16} strokeWidth={3} />
-          </button>
+          </KioskButton>
         </div>
       </div>
     </div>

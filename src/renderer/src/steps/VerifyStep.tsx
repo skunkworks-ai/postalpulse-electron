@@ -2,6 +2,7 @@ import React from 'react'
 import { ChevronRight, CreditCard, Navigation, Truck, ShieldCheck, FileText } from 'lucide-react'
 import { motion } from 'motion/react'
 import type { AddressRecord, ParcelData } from '../types'
+import KioskButton from '../components/KioskButton/KioskButton'
 
 interface VerifyStepProps {
   sender: AddressRecord
@@ -65,12 +66,12 @@ const VerifyStep = ({
               </div>
             </div>
           </div>
-          <button
+          <KioskButton
             onClick={onEditSender}
             className="w-fit mt-6 text-[10px] font-black text-[#003366] uppercase hover:text-[#E71921] transition-colors cursor-pointer"
           >
             Modify Node A
-          </button>
+          </KioskButton>
         </div>
 
         <div className="p-8 bg-slate-50/50 rounded-[24px] border-2 border-slate-100 flex flex-col justify-between">
@@ -90,12 +91,12 @@ const VerifyStep = ({
               </div>
             </div>
           </div>
-          <button
+          <KioskButton
             onClick={onEditRecipient}
             className="w-fit mt-6 text-[10px] font-black text-[#003366] uppercase hover:text-[#E71921] transition-colors cursor-pointer"
           >
             Modify Node B
-          </button>
+          </KioskButton>
         </div>
       </div>
 
@@ -139,18 +140,18 @@ const VerifyStep = ({
       </div>
 
       <div className="mt-10 flex gap-4">
-        <button
+        <KioskButton
           onClick={onBack}
           className="flex-1 bg-white text-slate-500 py-4 rounded-xl font-black uppercase text-[10px] tracking-widest border-2 border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer"
         >
           Back
-        </button>
-        <button
+        </KioskButton>
+        <KioskButton
           onClick={onNext}
-          className="flex-[2] bg-[#003366] hover:bg-black text-white py-5 rounded-xl font-black uppercase text-[11px] tracking-widest shadow-2xl shadow-blue-900/20 flex items-center justify-center gap-3 transition-all hover:scale-[1.01] cursor-pointer"
+          className="flex-[2] bg-[#003366] hover:bg-black text-white py-5 rounded-xl font-black uppercase text-[11px] tracking-widest shadow-2xl shadow-blue-900/20 flex items-center justify-center gap-3 transition-all cursor-pointer"
         >
           EXECUTE TRANSACTION <ChevronRight size={18} strokeWidth={3} />
-        </button>
+        </KioskButton>
       </div>
     </div>
   </motion.div>
