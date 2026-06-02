@@ -37,6 +37,7 @@ const AddressStep = ({
   const [isValidating, setIsValidating] = useState(false)
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const searchWrapperRef = useRef<HTMLDivElement>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
   const [dropdownRect, setDropdownRect] = useState<{ top: number; left: number; width: number } | null>(null)
 
   useEffect(() => {
@@ -46,6 +47,19 @@ const AddressStep = ({
     } else {
       setDropdownRect(null)
     }
+  }, [suggestions.length])
+
+  useEffect(() => {
+    if (suggestions.length === 0) return
+    const handleClickOutside = (e: MouseEvent): void => {
+      if (
+        searchWrapperRef.current?.contains(e.target as Node) ||
+        dropdownRef.current?.contains(e.target as Node)
+      ) return
+      setSuggestions([])
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [suggestions.length])
 
   const googleMapsApiKey = useSelector((state: RootState) => state.config.googleMapsApiKey)
@@ -324,6 +338,7 @@ const AddressStep = ({
 
               {suggestions.length > 0 && dropdownRect && createPortal(
                 <motion.div
+                  ref={dropdownRef}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   style={{ position: 'fixed', top: dropdownRect.top, left: dropdownRect.left, width: dropdownRect.width, zIndex: 9999 }}

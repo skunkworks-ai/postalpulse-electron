@@ -53,7 +53,7 @@ const DetectionStep = ({ onSuccess }: DetectionStepProps): React.JSX.Element => 
         }
         return prev + 2
       })
-    }, 40)
+    }, 100)
     return () => clearInterval(interval)
   }, [detectionError])
 

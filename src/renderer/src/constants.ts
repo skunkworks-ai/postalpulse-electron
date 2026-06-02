@@ -21,7 +21,7 @@ export const IDLE_TIMEOUT_SEC = 0
 export const COUNTDOWN_SEC = 10
 
 // Set to true to bypass all Google Maps API calls and use mock data locally
-export const MOCK_GOOGLE_MAPS = false
+export const MOCK_GOOGLE_MAPS = true
 
 export const MOCK_ADDRESSES: AddressSuggestion[] = [
   {
