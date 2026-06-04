@@ -4,6 +4,7 @@ import { motion } from 'motion/react'
 import PriorityStripes from '../components/PriorityStripes'
 import KioskButton from '../components/KioskButton/KioskButton'
 import type { ParcelData } from '../types'
+import en from '../translations/en'
 
 interface PaymentStepProps {
   detectedParcel: ParcelData | null
@@ -14,6 +15,7 @@ interface PaymentStepProps {
 const PaymentStep = ({ detectedParcel, onSuccess, onBack }: PaymentStepProps): React.JSX.Element => {
   const [isProcessing, setIsProcessing] = useState(false)
   const [isPrinting, setIsPrinting] = useState(false)
+  const copy = en.steps.payment
 
   const handlePayment = (): void => {
     setIsProcessing(true)
@@ -32,9 +34,9 @@ const PaymentStep = ({ detectedParcel, onSuccess, onBack }: PaymentStepProps): R
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.98 }}
-      className="flex-1 flex flex-col items-center justify-center p-6"
+      className="kiosk-step flex-1 flex flex-col items-center justify-center p-6"
     >
-      <div className="bg-white w-full max-w-xl rounded-[32px] p-16 shadow-[0_40px_80px_rgba(0,0,0,0.08)] border border-slate-200 text-center relative overflow-hidden">
+      <div className="kiosk-card bg-white w-full max-w-xl rounded-4xl p-10 sm:p-16 shadow-[0_40px_80px_rgba(0,0,0,0.08)] border border-slate-200 text-center relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full">
           <PriorityStripes />
         </div>
@@ -54,11 +56,11 @@ const PaymentStep = ({ detectedParcel, onSuccess, onBack }: PaymentStepProps): R
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="flex flex-col items-center gap-6 z-30 bg-white p-8 rounded-[32px] shadow-2xl border border-slate-100"
+              className="flex flex-col items-center gap-6 z-30 bg-white p-8 rounded-4xl shadow-2xl border border-slate-100"
             >
-              <RefreshCcw size={48} className="text-[#003366] animate-spin stroke-[3]" />
+              <RefreshCcw size={48} className="text-[#003366] animate-spin stroke-3" />
               <span className="text-[11px] font-black uppercase tracking-[0.3em] text-[#003366] italic">
-                {isPrinting ? 'Generating Tag' : 'Processing'}
+                {isPrinting ? copy.generatingTag : copy.processing}
               </span>
             </motion.div>
           )}
@@ -71,23 +73,23 @@ const PaymentStep = ({ detectedParcel, onSuccess, onBack }: PaymentStepProps): R
             transition={{ delay: 0.3 }}
           >
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-3">
-              Postage Allocation
+              {copy.title}
             </p>
-            <p className="text-6xl font-bold text-slate-900 tracking-tighter mb-10 leading-none">
+            <p className="text-7xl font-bold text-slate-900 tracking-tighter mb-10 leading-none">
               ${detectedParcel?.price.toFixed(2)}
             </p>
 
             <div className="p-6 bg-slate-50 border border-slate-200 rounded-2xl mb-10">
               <p className="text-slate-500 font-semibold text-sm italic">
-                Terminal active. Please insert secure credentials or tap NFC reader.
+                {copy.description}
               </p>
             </div>
 
             <KioskButton
               onClick={handlePayment}
-              className="w-full bg-slate-900 text-white py-5 rounded-xl font-bold uppercase text-xs tracking-widest shadow-2xl shadow-slate-900/20 transition-all hover:bg-slate-800 cursor-pointer"
+              className="w-full bg-slate-900 text-white py-6 rounded-xl font-bold uppercase text-sm tracking-widest shadow-2xl shadow-slate-900/20 transition-all hover:bg-slate-800 cursor-pointer"
             >
-              SIMULATE ENCRYPTION
+              {copy.simulateEncryption}
             </KioskButton>
           </motion.div>
         ) : (
@@ -97,7 +99,7 @@ const PaymentStep = ({ detectedParcel, onSuccess, onBack }: PaymentStepProps): R
               transition={{ repeat: Infinity, duration: 1.5 }}
               className="text-indigo-600 font-bold uppercase tracking-[0.3em] text-[10px]"
             >
-              Establishing Secure Link...
+              {copy.secureLink}
             </motion.p>
           </div>
         )}
@@ -107,7 +109,7 @@ const PaymentStep = ({ detectedParcel, onSuccess, onBack }: PaymentStepProps): R
             onClick={onBack}
             className="mt-8 text-slate-400 font-bold uppercase text-[10px] tracking-widest hover:text-rose-500 transition-colors cursor-pointer"
           >
-            De-authorize Transaction
+            {copy.deauthorizeTransaction}
           </KioskButton>
         )}
       </div>

@@ -1,13 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useSelector } from 'react-redux'
-import { ChevronRight, Search, MapPin, Edit2, Undo2, Truck, CheckCircle2, AlertCircle } from 'lucide-react'
+import { ChevronRight, Search, MapPin, Edit2, User, Truck, CheckCircle2, AlertCircle } from 'lucide-react'
 import { motion } from 'motion/react'
 import ControlledInput from '../contexts/KeyboardProvider/ControlledInput'
 import KioskButton from '../components/KioskButton/KioskButton'
 import { STEPS, MOCK_ADDRESSES, MOCK_GOOGLE_MAPS } from '../constants'
 import type { AddressRecord, AddressSuggestion } from '../types'
 import type { RootState } from '../store'
+import en from '../translations/en'
 
 interface AddressStepProps {
   currentStep: string
@@ -52,6 +53,7 @@ const AddressStep = ({
   const isSender = currentStep === STEPS.SENDER
   const current = isSender ? sender : recipient
   const setCurrent = isSender ? setSender : setRecipient
+  const copy = isSender ? en.steps.address.sender : en.steps.address.recipient
 
   const handleAddressSearch = (value: string): void => {
     setAddressSearch(value)
@@ -258,9 +260,9 @@ const AddressStep = ({
       initial={{ opacity: 0, x: 30 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -30 }}
-      className="flex-1 flex flex-col items-center justify-center p-6"
+      className="kiosk-step flex-1 flex flex-col items-center justify-center p-6"
     >
-      <div className="bg-white w-full max-w-2xl rounded-[32px] shadow-2xl shadow-slate-200/50 border border-slate-200 relative overflow-hidden">
+      <div className="kiosk-card bg-white w-full max-w-2xl rounded-4xl shadow-2xl shadow-slate-200/50 border border-slate-200 relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-1 bg-slate-100">
           <motion.div
             className="h-full bg-[#003366]"
@@ -275,14 +277,14 @@ const AddressStep = ({
             <div
               className={`w-14 h-14 ${isSender ? 'bg-[#003366] shadow-blue-900/20' : 'bg-[#E71921] shadow-red-900/20'} text-white rounded-2xl flex items-center justify-center shadow-xl transition-all duration-500`}
             >
-              {isSender ? <Undo2 size={26} /> : <Truck size={26} />}
+              {isSender ? <User size={26} /> : <Truck size={26} />}
             </div>
             <div>
               <h3 className="text-2xl font-black text-[#003366] italic tracking-tighter uppercase">
-                {isSender ? 'Origin Intel' : 'Delivery Node'}
+                {copy.title}
               </h3>
               <p className="text-slate-400 font-bold text-[10px] uppercase tracking-[0.2em] mt-1">
-                Section {isSender ? 'A' : 'B'} of Protocol
+                {copy.section}
               </p>
             </div>
           </div>
@@ -291,13 +293,13 @@ const AddressStep = ({
         <div className="space-y-6">
           <div className="space-y-2">
             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
-              Entity Identifier
+              {copy.entityIdentifier}
             </label>
             <ControlledInput
               name="name"
               value={current.name}
               setValue={(val) => setCurrent((prev) => ({ ...prev, name: val, isValidated: false }))}
-              placeholder={isSender ? 'Sender ID / Name' : 'Recipient ID / Name'}
+              placeholder={copy.namePlaceholder}
               className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 focus:ring-2 focus:ring-indigo-600/10 focus:border-indigo-600/30 focus:outline-none font-semibold text-slate-900 transition-all placeholder:text-slate-300"
             />
           </div>
@@ -305,7 +307,7 @@ const AddressStep = ({
           {!isManualEntry ? (
             <div className="space-y-2" ref={searchWrapperRef}>
               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
-                Global Address Registry
+                {copy.registryLabel}
               </label>
               <div className="relative">
                 <Search
@@ -315,7 +317,7 @@ const AddressStep = ({
                 <ControlledInput
                   value={addressSearch}
                   setValue={handleAddressSearch}
-                  placeholder="Search global coordinates..."
+                  placeholder={copy.searchPlaceholder}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 pl-12 focus:ring-2 focus:ring-indigo-600/10 focus:border-indigo-600/30 focus:outline-none font-semibold text-slate-900 transition-all placeholder:text-slate-300"
                 />
               </div>
@@ -349,29 +351,29 @@ const AddressStep = ({
                 onClick={() => setIsManualEntry(true)}
                 className="text-[10px] font-bold text-indigo-600 uppercase hover:text-indigo-700 flex items-center gap-1.5 mt-2 transition-all cursor-pointer"
               >
-                <Edit2 size={10} /> Override Manual
+                <Edit2 size={10} /> {copy.overrideManual}
               </KioskButton>
             </div>
           ) : (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="grid grid-cols-1 md:grid-cols-3 gap-4 p-6 bg-slate-50 rounded-[24px] border border-slate-200"
+              className="grid grid-cols-1 gap-4 p-6 bg-slate-50 rounded-3xl border border-slate-200"
             >
-              <div className="md:col-span-3 flex items-center justify-between mb-1">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                  Manual Entry
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[16px] font-bold text-slate-400 uppercase tracking-widest">
+                  {copy.manualEntry}
                 </span>
                 <KioskButton
                   onClick={() => setIsManualEntry(false)}
                   className="text-[10px] font-bold text-indigo-600 uppercase hover:text-indigo-700 flex items-center gap-1.5 transition-all cursor-pointer"
                 >
-                  <Search size={10} /> Switch to Search
+                  <Search size={10} /> {copy.switchToSearch}
                 </KioskButton>
               </div>
-              <div className="md:col-span-3 space-y-1.5">
+              <div className="space-y-1.5">
                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
-                  Spatial Path
+                  {copy.streetLabel}
                 </label>
                 <ControlledInput
                   name="street"
@@ -382,46 +384,48 @@ const AddressStep = ({
                   className="w-full bg-white border border-slate-200 rounded-lg p-3 font-semibold text-slate-900 focus:outline-none focus:border-indigo-600/30"
                 />
               </div>
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
-                  Municipality
-                </label>
-                <ControlledInput
-                  name="city"
-                  value={current.city}
-                  setValue={(val) =>
-                    setCurrent((prev) => ({ ...prev, city: val, isValidated: false }))
-                  }
-                  className="w-full bg-white border border-slate-200 rounded-lg p-3 font-semibold text-slate-900 focus:outline-none focus:border-indigo-600/30"
-                />
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
+                    {copy.cityLabel}
+                  </label>
+                  <ControlledInput
+                    name="city"
+                    value={current.city}
+                    setValue={(val) =>
+                      setCurrent((prev) => ({ ...prev, city: val, isValidated: false }))
+                    }
+                    className="w-full bg-white border border-slate-200 rounded-lg p-3 font-semibold text-slate-900 focus:outline-none focus:border-indigo-600/30"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
+                    {copy.stateLabel}
+                  </label>
+                  <ControlledInput
+                    name="state"
+                    value={current.state}
+                    setValue={(val) =>
+                      setCurrent((prev) => ({ ...prev, state: val, isValidated: false }))
+                    }
+                    className="w-full bg-white border border-slate-200 rounded-lg p-3 font-semibold text-slate-900 focus:outline-none focus:border-indigo-600/30"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
+                    {copy.zipLabel}
+                  </label>
+                  <ControlledInput
+                    name="zip"
+                    value={current.zip}
+                    setValue={(val) =>
+                      setCurrent((prev) => ({ ...prev, zip: val, isValidated: false }))
+                    }
+                    className="w-full bg-white border border-slate-200 rounded-lg p-3 font-semibold text-slate-900 focus:outline-none focus:border-indigo-600/30"
+                  />
+                </div>
               </div>
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
-                  State Code
-                </label>
-                <ControlledInput
-                  name="state"
-                  value={current.state}
-                  setValue={(val) =>
-                    setCurrent((prev) => ({ ...prev, state: val, isValidated: false }))
-                  }
-                  className="w-full bg-white border border-slate-200 rounded-lg p-3 font-semibold text-slate-900 focus:outline-none focus:border-indigo-600/30"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
-                  Zone Index
-                </label>
-                <ControlledInput
-                  name="zip"
-                  value={current.zip}
-                  setValue={(val) =>
-                    setCurrent((prev) => ({ ...prev, zip: val, isValidated: false }))
-                  }
-                  className="w-full bg-white border border-slate-200 rounded-lg p-3 font-semibold text-slate-900 focus:outline-none focus:border-indigo-600/30"
-                />
-              </div>
-              <div className="md:col-span-3">
+              <div>
                 <KioskButton
                   onClick={async () => {
                     if (!current.street || !current.city || !current.state) return
@@ -431,9 +435,9 @@ const AddressStep = ({
                     if (cass) setCurrent((prev) => ({ ...prev, ...cass }))
                   }}
                   disabled={isValidating || !current.street || !current.city || !current.state}
-                  className="w-full py-3 rounded-xl font-black uppercase text-[10px] tracking-widest border border-[#003366] text-[#003366] hover:bg-[#003366] hover:text-white disabled:opacity-30 transition-all cursor-pointer"
+                  className="w-full py-4 rounded-xl font-black uppercase text-sm tracking-widest border border-[#003366] text-[#003366] hover:bg-[#003366] hover:text-white disabled:opacity-30 transition-all cursor-pointer"
                 >
-                  {isValidating ? 'Validating...' : 'CASS Validate'}
+                  {isValidating ? copy.validating : copy.validate}
                 </KioskButton>
               </div>
             </motion.div>
@@ -447,7 +451,7 @@ const AddressStep = ({
             >
               <div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
               <span className="text-blue-700 font-bold text-[10px] uppercase tracking-widest">
-                CASS Validation in Progress...
+                {copy.progress}
               </span>
             </motion.div>
           )}
@@ -460,7 +464,7 @@ const AddressStep = ({
             >
               <CheckCircle2 className="text-emerald-600" size={16} />
               <span className="text-emerald-700 font-bold text-[10px] uppercase tracking-widest">
-                Entry Validation Sync: 100%
+                {copy.validated}
               </span>
             </motion.div>
           )}
@@ -473,7 +477,7 @@ const AddressStep = ({
             >
               <AlertCircle className="text-amber-500" size={16} />
               <span className="text-amber-700 font-bold text-[10px] uppercase tracking-widest">
-                Address Not CASS Validated
+                {copy.notValidated}
               </span>
             </motion.div>
           )}
@@ -482,16 +486,16 @@ const AddressStep = ({
         <div className="mt-12 flex gap-4">
           <KioskButton
             onClick={onBack}
-            className="flex-1 bg-white text-slate-500 py-4 rounded-xl font-bold uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 border border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer"
+            className="flex-1 bg-white text-slate-500 py-5 rounded-xl font-bold uppercase text-sm tracking-widest flex items-center justify-center gap-2 border border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer"
           >
-            Return
+            {copy.back}
           </KioskButton>
           <KioskButton
             onClick={onNext}
             disabled={!current.name || !current.street}
-            className="flex-[2] bg-[#003366] hover:bg-black disabled:opacity-30 text-white py-4 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-xl flex items-center justify-center gap-3 transition-all cursor-pointer"
+            className="flex-2 bg-[#003366] hover:bg-black disabled:opacity-30 text-white py-5 rounded-xl font-black uppercase text-sm tracking-widest shadow-xl flex items-center justify-center gap-3 transition-all cursor-pointer"
           >
-            {isSender ? 'Confirm Origin' : 'Lock Node'}{' '}
+            {copy.next}{' '}
             <ChevronRight size={16} />
           </KioskButton>
         </div>

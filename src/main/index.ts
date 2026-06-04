@@ -1,13 +1,15 @@
 import { app, shell, BrowserWindow, ipcMain, net } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
+import { logTransaction, type TransactionRecord } from './transactionLogger'
+import icon from '../../resources/icon.png?asset'
 
 const Store = require('electron-store') as any
 
 type ConfigState = Record<string, unknown>
 
 // Load default config values from shared config.json
-const configDefaults: ConfigState = require('../../src/renderer/src/features/config/config.json')
+import configDefaults from '../../src/renderer/src/features/config/config.json'
 
 const configStore: any = new Store({ name: 'postalpulse-config', defaults: configDefaults })
 
@@ -18,6 +20,7 @@ function createWindow(): void {
     height: 800,
     show: false,
     autoHideMenuBar: true,
+    icon,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false
@@ -107,6 +110,12 @@ app.whenReady().then(() => {
       if (body) request.write(body)
       request.end()
     })
+  })
+
+  // Transaction logging
+  ipcMain.handle('log-transaction', (_event, record: TransactionRecord) => {
+    logTransaction(record)
+    return { success: true }
   })
 
   createWindow()

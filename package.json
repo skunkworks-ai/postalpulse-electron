@@ -1,6 +1,6 @@
 {
-  "name": "postalpulse-electron",
-  "version": "1.0.0",
+  "name": "sali-postalpulse-electron",
+  "version": "0.1.0",
   "description": "PostalPulse Express - Automated USPS self-service shipping kiosk",
   "main": "./out/main/index.js",
   "author": "PostalPulse",

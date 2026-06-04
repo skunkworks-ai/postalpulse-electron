@@ -3,9 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <link rel="icon" type="image/svg+xml" href="./src/assets/postalpulse-icon.png" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:"
+      content="
+        connect-src * 'unsafe-eval' data: blob:;
+        script-src 'self';
+        style-src 'self' 'unsafe-inline';
+        img-src 'self' http://localhost:7070 http://localhost:6060 data: blob: file:;
+      "
     />
     <title>PostalPulse Express</title>
   </head>

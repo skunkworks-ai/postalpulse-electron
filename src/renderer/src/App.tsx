@@ -3,6 +3,7 @@ import { ChevronRight, Timer, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import ConfigPage from './pages/Config/Config'
 import Header from './components/Header'
+import StepIndicator from './components/StepIndicator'
 import WelcomeStep from './steps/WelcomeStep'
 import DetectionStep from './steps/DetectionStep'
 import ConfirmationStep from './steps/ConfirmationStep'
@@ -11,6 +12,7 @@ import VerifyStep from './steps/VerifyStep'
 import PaymentStep from './steps/PaymentStep'
 import SuccessStep from './steps/SuccessStep'
 import { STEPS, IDLE_TIMEOUT_SEC, COUNTDOWN_SEC } from './constants'
+import { logSession } from './utils/transactionLogger'
 import type { AddressRecord, ParcelData } from './types'
 
 const App = (): React.JSX.Element => {
@@ -70,6 +72,15 @@ const App = (): React.JSX.Element => {
   }
 
   const resetApp = (): void => {
+    // Log transaction if we completed a successful session
+    if (currentStep === STEPS.SUCCESS && sender.name && recipient.name && detectedParcel) {
+      logSession({
+        sender,
+        recipient,
+        parcel: detectedParcel
+      })
+    }
+
     resetAddresses()
     setDetectedParcel(null)
     setShowTimeoutModal(false)
@@ -120,10 +131,11 @@ const App = (): React.JSX.Element => {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans flex flex-col overflow-hidden select-none">
+    <div className="kiosk-app min-h-screen bg-[#F8FAFC] text-slate-900 font-sans flex flex-col overflow-hidden select-none">
       <Header onLogoTap={handleLogoTap} />
+      <StepIndicator currentStep={currentStep} />
 
-      <main className="flex-1 flex flex-col relative bg-slate-50/50">
+      <main className="kiosk-stage flex-1 flex flex-col relative bg-slate-50/50">
         <AnimatePresence mode="wait">
           {currentStep === STEPS.WELCOME && (
             <WelcomeStep key={STEPS.WELCOME} onStart={() => setCurrentStep(STEPS.DETECTION)} />
@@ -214,7 +226,7 @@ const App = (): React.JSX.Element => {
 
       {/* --- Timeout Modal --- */}
       {showTimeoutModal && (
-        <div className="fixed inset-0 z-[999] flex items-center justify-center p-6">
+        <div className="fixed inset-0 z-999 flex items-center justify-center p-6">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -223,19 +235,19 @@ const App = (): React.JSX.Element => {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white w-full max-w-md rounded-[32px] p-10 shadow-[0_40px_80px_rgba(0,0,0,0.2)] relative z-10 text-center border border-slate-200"
+            className="kiosk-card bg-white w-full max-w-md rounded-4xl p-10 shadow-[0_40px_80px_rgba(0,0,0,0.2)] relative z-10 text-center border border-slate-200"
           >
-            <div className="w-24 h-24 bg-red-50 text-[#E71921] rounded-[24px] flex items-center justify-center mx-auto mb-8 transform rotate-6 border-2 border-red-100 shadow-sm">
+            <div className="w-24 h-24 bg-red-50 text-[#E71921] rounded-3xl flex items-center justify-center mx-auto mb-8 transform rotate-6 border-2 border-red-100 shadow-sm">
               <Timer size={40} strokeWidth={2.5} />
             </div>
-            <h3 className="text-2xl font-black text-[#003366] italic uppercase tracking-tighter mb-2 leading-none">
+            <h3 className="kiosk-title text-2xl font-black text-[#003366] italic uppercase tracking-tighter mb-2 leading-none">
               Session Guard Active
             </h3>
-            <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mb-10">
+            <p className="kiosk-subtext text-slate-400 font-bold text-xs uppercase tracking-widest mb-10">
               Terminal inactivity detected. Auto-purge in:
             </p>
 
-            <div className="w-24 h-24 rounded-[32px] border-4 border-slate-100 bg-slate-50 flex items-center justify-center mx-auto mb-12 shadow-inner">
+            <div className="w-24 h-24 rounded-4xl border-4 border-slate-100 bg-slate-50 flex items-center justify-center mx-auto mb-12 shadow-inner">
               <span className="text-4xl font-black text-[#003366] italic">{countdown}</span>
             </div>
 
