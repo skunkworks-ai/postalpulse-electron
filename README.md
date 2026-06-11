@@ -33,6 +33,20 @@ PostalPulse Express combines optical dimensioning, integrated scale weight, Goog
 
 ## Project Setup
 
+### Simple Prerequisites (Before Running)
+
+1. Install **Node.js v20+**.
+2. Prepare a **Google Maps API key** with:
+   - Places API (New)
+   - Address Validation API
+3. Have kiosk service endpoints ready to enter in Config:
+   - Camera / Unison URL - defaults to `http://localhost:8080`
+   - Dimensioning / RealSense URL - defaults to `ws://localhost:9001`
+   - Scale / CasPD2 URL - `http://localhost:3030`
+4. Start the app, open Config (tap logo 5 times), and save all required values.
+
+> Quick dev option: set `MOCK_GOOGLE_MAPS = true` in `src/renderer/src/constants.ts` to run address flow without live Google API calls.
+
 ### Install
 
 > Requires **Node.js v20+**
