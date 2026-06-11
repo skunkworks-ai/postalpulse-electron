@@ -2,18 +2,12 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import defaultConfig from './config.json'
 
 export interface ConfigState {
-  /** Backend API server */
-  serverAddressURL: string
   /** Camera / Unison service */
   unisonAddressURL: string
   /** Depth-camera / RealSense dimensioning service */
   realSenseAddressURL: string
   /** Scale / CasPD2 weight service */
   casPD2AddressURL: string
-  /** USPS Label / postage API */
-  labelAddressURL: string
-  /** Payment terminal service */
-  paymentAddressURL: string
   /** Weight unit displayed to the customer */
   unit: 'lb' | 'kg'
   /** Google Maps API key for Places Autocomplete & Address Validation */
@@ -29,9 +23,6 @@ const configSlice = createSlice({
     replaceConfig(_state, action: PayloadAction<ConfigState>) {
       return action.payload
     },
-    setServerAddressURL(state, action: PayloadAction<string>) {
-      state.serverAddressURL = action.payload
-    },
     setUnisonAddressURL(state, action: PayloadAction<string>) {
       state.unisonAddressURL = action.payload
     },
@@ -40,12 +31,6 @@ const configSlice = createSlice({
     },
     setCasPD2AddressURL(state, action: PayloadAction<string>) {
       state.casPD2AddressURL = action.payload
-    },
-    setLabelAddressURL(state, action: PayloadAction<string>) {
-      state.labelAddressURL = action.payload
-    },
-    setPaymentAddressURL(state, action: PayloadAction<string>) {
-      state.paymentAddressURL = action.payload
     },
     setUnit(state, action: PayloadAction<'lb' | 'kg'>) {
       state.unit = action.payload
@@ -58,13 +43,9 @@ const configSlice = createSlice({
 
 export const {
   replaceConfig,
-  setServerAddressURL,
   setUnisonAddressURL,
   setRealSenseAddressURL,
   setCasPD2AddressURL,
-  setCassAddressURL,
-  setLabelAddressURL,
-  setPaymentAddressURL,
   setUnit,
   setGoogleMapsApiKey
 } = configSlice.actions

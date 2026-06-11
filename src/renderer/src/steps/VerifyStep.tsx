@@ -118,13 +118,24 @@ const VerifyStep = ({
             <div className="w-px h-10 bg-white/20 hidden xl:block" />
             <div className="space-y-1.5 text-center xl:text-left">
               <p className="text-[10px] font-bold text-indigo-100 uppercase tracking-widest opacity-80">
-                {copy.dimensions}
+                {copy.actualDimensions}
+              </p>
+              <p className="whitespace-nowrap text-sm font-black">
+                {detectedParcel?.actualDimensions}
+              </p>
+            </div>
+            <div className="w-px h-10 bg-white/20 hidden xl:block" />
+            <div className="space-y-1.5 text-center xl:text-left">
+              <p className="text-[10px] font-bold text-indigo-100 uppercase tracking-widest opacity-80">
+                Box Dimensions
               </p>
               <p className="whitespace-nowrap text-sm font-black">
                 {detectedParcel?.dimensions}
               </p>
             </div>
-            <div className="w-px h-10 bg-white/20 hidden xl:block" />
+          </div>
+
+          <div className="mt-6 flex items-center justify-center xl:justify-start gap-10 relative z-10 text-white/90">
             <div className="space-y-1.5 text-center xl:text-left">
               <p className="text-[10px] font-bold text-indigo-100 uppercase tracking-widest opacity-80">
                 {copy.payload}

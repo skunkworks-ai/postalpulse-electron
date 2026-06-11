@@ -1,15 +1,12 @@
 import React, { useState } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import { motion } from 'motion/react'
-import { Settings, Save, X, CheckCircle2, Server, Camera, Weight, Tag, CreditCard, Globe } from 'lucide-react'
+import { Settings, Save, X, CheckCircle2, Camera, Weight, Globe } from 'lucide-react'
 import { RootState } from '../../store'
 import {
-  setServerAddressURL,
   setUnisonAddressURL,
   setRealSenseAddressURL,
   setCasPD2AddressURL,
-  setLabelAddressURL,
-  setPaymentAddressURL,
   setUnit,
   setGoogleMapsApiKey
 } from '../../features/config/configSlice'
@@ -27,12 +24,6 @@ interface Field {
 }
 
 const FIELDS: Field[] = [
-  {
-    label: 'Backend Server',
-    key: 'serverAddressURL',
-    icon: <Server size={18} />,
-    description: 'Core API gateway'
-  },
   {
     label: 'Camera / Unison',
     key: 'unisonAddressURL',
@@ -52,18 +43,6 @@ const FIELDS: Field[] = [
     description: 'Integrated scale weight'
   },
   {
-    label: 'Label / Postage API',
-    key: 'labelAddressURL',
-    icon: <Tag size={18} />,
-    description: 'USPS label generation'
-  },
-  {
-    label: 'Payment Terminal',
-    key: 'paymentAddressURL',
-    icon: <CreditCard size={18} />,
-    description: 'EMV / NFC terminal service'
-  },
-  {
     label: 'Google Maps API Key',
     key: 'googleMapsApiKey',
     icon: <Globe size={18} />,
@@ -76,12 +55,9 @@ const ConfigPage: React.FC<ConfigPageProps> = ({ onClose }) => {
   const config = useSelector((state: RootState) => state.config)
 
   const [values, setValues] = useState({
-    serverAddressURL: config.serverAddressURL,
     unisonAddressURL: config.unisonAddressURL,
     realSenseAddressURL: config.realSenseAddressURL,
     casPD2AddressURL: config.casPD2AddressURL,
-    labelAddressURL: config.labelAddressURL,
-    paymentAddressURL: config.paymentAddressURL,
     unit: config.unit,
     googleMapsApiKey: config.googleMapsApiKey
   })
@@ -89,12 +65,9 @@ const ConfigPage: React.FC<ConfigPageProps> = ({ onClose }) => {
   const [saved, setSaved] = useState(false)
 
   const handleSave = (): void => {
-    dispatch(setServerAddressURL(values.serverAddressURL))
     dispatch(setUnisonAddressURL(values.unisonAddressURL))
     dispatch(setRealSenseAddressURL(values.realSenseAddressURL))
     dispatch(setCasPD2AddressURL(values.casPD2AddressURL))
-    dispatch(setLabelAddressURL(values.labelAddressURL))
-    dispatch(setPaymentAddressURL(values.paymentAddressURL))
     dispatch(setUnit(values.unit as 'lb' | 'kg'))
     dispatch(setGoogleMapsApiKey(values.googleMapsApiKey))
     setSaved(true)

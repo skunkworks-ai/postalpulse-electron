@@ -53,12 +53,20 @@ npm run dev
 # macOS
 npm run build:mac
 
-# Windows
+# Windows (from macOS, x64 installer)
 npm run build:win
+
+# Windows ARM64 installer
+npm run build:win:arm64
+
+# Windows installers for both x64 and ARM64
+npm run build:win:all
 
 # Linux
 npm run build:linux
 ```
+
+Windows cross-builds are configured with `signAndEditExecutable: false` in `electron-builder.yml` to make packaging work reliably from macOS hosts.
 
 ---
 

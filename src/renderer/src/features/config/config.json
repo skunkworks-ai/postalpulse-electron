@@ -1,10 +1,7 @@
 {
-  "serverAddressURL": "http://localhost:8000",
-  "unisonAddressURL": "http://localhost:7070",
-  "realSenseAddressURL": "http://localhost:6060",
+  "unisonAddressURL": "http://localhost:8080",
+  "realSenseAddressURL": "ws://localhost:9001",
   "casPD2AddressURL": "http://localhost:3030",
-  "labelAddressURL": "http://localhost:5050",
-  "paymentAddressURL": "http://localhost:9090",
-  "unit": "lb",
+  "unit": "kg",
   "googleMapsApiKey": ""
 }

@@ -21,6 +21,9 @@ export interface AddressRecord {
 export interface ParcelData {
   size: string
   dimensions: string
+  dimensionsMetric: string
+  actualDimensions: string
+  actualDimensionsMetric: string
   weight: number
   price: number
 }

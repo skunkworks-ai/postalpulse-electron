@@ -1,9 +1,93 @@
 import type { AddressSuggestion } from './types'
 
+export const INCH_TO_CM = 2.54
+export const LB_TO_KG = 0.45359237
+
+export const inchesToCentimeters = (inches: number): number => Number((inches * INCH_TO_CM).toFixed(2))
+export const centimetersToInches = (centimeters: number): number => Number((centimeters / INCH_TO_CM).toFixed(2))
+export const poundsToKilograms = (pounds: number): number => Number((pounds * LB_TO_KG).toFixed(3))
+export const kilogramsToPounds = (kilograms: number): number => Number((kilograms / LB_TO_KG).toFixed(3))
+
 export const BOX_SPECS = {
   SMALL: { name: 'SMALL FLAT RATE', maxL: 8.7, maxW: 5.5, maxH: 1.7, maxWeight: 1, price: 10.2 },
   MEDIUM: { name: 'MEDIUM FLAT RATE', maxL: 11.3, maxW: 8.8, maxH: 6.0, maxWeight: 3, price: 17.1 },
   LARGE: { name: 'LARGE FLAT RATE', maxL: 12.3, maxW: 12.0, maxH: 6.0, maxWeight: 5, price: 22.8 }
+}
+
+export type BoxKey = keyof typeof BOX_SPECS
+export type BoxSpec = (typeof BOX_SPECS)[BoxKey]
+export type MeasurementUnit = 'imperial' | 'metric'
+
+const BOX_ORDER: BoxKey[] = ['SMALL', 'MEDIUM', 'LARGE']
+
+const fitsBox = (dimensions: [number, number, number], weightLb: number, box: BoxSpec): boolean => {
+  const sortedItem = [...dimensions].sort((a, b) => b - a)
+  const sortedBox = [box.maxL, box.maxW, box.maxH].sort((a, b) => b - a)
+
+  return (
+    sortedItem[0] <= sortedBox[0] &&
+    sortedItem[1] <= sortedBox[1] &&
+    sortedItem[2] <= sortedBox[2] &&
+    weightLb <= box.maxWeight
+  )
+}
+
+export const getFittingBox = (
+  length: number,
+  width: number,
+  height: number,
+  weight: number,
+  unit: MeasurementUnit = 'imperial'
+): { key: BoxKey; spec: BoxSpec } | null => {
+  const hasInvalidInput = [length, width, height, weight].some((value) => !Number.isFinite(value) || value <= 0)
+  if (hasInvalidInput) return null
+
+  const dimensionsInches: [number, number, number] =
+    unit === 'metric'
+      ? [
+          centimetersToInches(length),
+          centimetersToInches(width),
+          centimetersToInches(height)
+        ]
+      : [length, width, height]
+
+  const weightLb = unit === 'metric' ? kilogramsToPounds(weight) : weight
+
+  for (const key of BOX_ORDER) {
+    const box = BOX_SPECS[key]
+    if (fitsBox(dimensionsInches, weightLb, box)) {
+      return { key, spec: box }
+    }
+  }
+
+  return null
+}
+
+export const BOX_SPECS_METRIC = {
+  SMALL: {
+    name: BOX_SPECS.SMALL.name,
+    maxL: inchesToCentimeters(BOX_SPECS.SMALL.maxL),
+    maxW: inchesToCentimeters(BOX_SPECS.SMALL.maxW),
+    maxH: inchesToCentimeters(BOX_SPECS.SMALL.maxH),
+    maxWeight: poundsToKilograms(BOX_SPECS.SMALL.maxWeight),
+    price: BOX_SPECS.SMALL.price
+  },
+  MEDIUM: {
+    name: BOX_SPECS.MEDIUM.name,
+    maxL: inchesToCentimeters(BOX_SPECS.MEDIUM.maxL),
+    maxW: inchesToCentimeters(BOX_SPECS.MEDIUM.maxW),
+    maxH: inchesToCentimeters(BOX_SPECS.MEDIUM.maxH),
+    maxWeight: poundsToKilograms(BOX_SPECS.MEDIUM.maxWeight),
+    price: BOX_SPECS.MEDIUM.price
+  },
+  LARGE: {
+    name: BOX_SPECS.LARGE.name,
+    maxL: inchesToCentimeters(BOX_SPECS.LARGE.maxL),
+    maxW: inchesToCentimeters(BOX_SPECS.LARGE.maxW),
+    maxH: inchesToCentimeters(BOX_SPECS.LARGE.maxH),
+    maxWeight: poundsToKilograms(BOX_SPECS.LARGE.maxWeight),
+    price: BOX_SPECS.LARGE.price
+  }
 }
 
 export const STEPS = {
@@ -21,7 +105,7 @@ export const IDLE_TIMEOUT_SEC = 0
 export const COUNTDOWN_SEC = 10
 
 // Set to true to bypass all Google Maps API calls and use mock data locally
-export const MOCK_GOOGLE_MAPS = true
+export const MOCK_GOOGLE_MAPS = false
 
 export const MOCK_ADDRESSES: AddressSuggestion[] = [
   {

@@ -68,6 +68,8 @@ const AddressStep = ({
   const current = isSender ? sender : recipient
   const setCurrent = isSender ? setSender : setRecipient
   const copy = isSender ? en.steps.address.sender : en.steps.address.recipient
+  const isNameEmpty = !current.name.trim()
+  const isAddressEmpty = !current.street.trim()
 
   const handleAddressSearch = (value: string): void => {
     setAddressSearch(value)
@@ -312,7 +314,7 @@ const AddressStep = ({
             <ControlledInput
               name="name"
               value={current.name}
-              setValue={(val) => setCurrent((prev) => ({ ...prev, name: val, isValidated: false }))}
+              setValue={(val) => setCurrent((prev) => ({ ...prev, name: val }))}
               placeholder={copy.namePlaceholder}
               className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 focus:ring-2 focus:ring-indigo-600/10 focus:border-indigo-600/30 focus:outline-none font-semibold text-slate-900 transition-all placeholder:text-slate-300"
             />
@@ -507,7 +509,7 @@ const AddressStep = ({
           </KioskButton>
           <KioskButton
             onClick={onNext}
-            disabled={!current.name || !current.street}
+            disabled={isNameEmpty || isAddressEmpty}
             className="flex-2 bg-[#003366] hover:bg-black disabled:opacity-30 text-white py-5 rounded-xl font-black uppercase text-sm tracking-widest shadow-xl flex items-center justify-center gap-3 transition-all cursor-pointer"
           >
             {copy.next}{' '}

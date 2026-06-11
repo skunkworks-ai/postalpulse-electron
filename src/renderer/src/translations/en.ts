@@ -43,8 +43,10 @@ const en = {
       badge: 'Metric Confirmation',
       title: 'Parcel Metrics Analysis',
       volumetricClass: 'Volumetric Class',
-      spatialDimensions: 'Spatial Dimensions',
+      actualDimensions: 'Actual Dimensions',
+      boxDimensions: 'Box Dimensions',
       massDensity: 'Mass Density',
+      massDensityMetric: 'Kilograms',
       totalTariff: 'Total Tariff',
       rateConfirmed: 'Rate Confirmed',
       discard: 'Discard',
@@ -71,7 +73,7 @@ const en = {
         validated: 'Address is CASS Validated',
         notValidated: 'Address Not CASS Validated',
         back: 'Return',
-        next: 'Confirm Origin'
+        next: 'Confirm Sender Details'
       },
       recipient: {
         title: 'Recipient Details',
@@ -93,7 +95,7 @@ const en = {
         validated: 'Address is CASS Validated',
         notValidated: 'Address Not CASS Validated',
         back: 'Return',
-        next: 'Confirm Destination'
+        next: 'Confirm Recipient Details'
       }
     },
     verify: {
@@ -105,6 +107,7 @@ const en = {
       modifyOrigin: 'Modify Sender',
       modifyTarget: 'Modify Recipient',
       class: 'Class',
+      actualDimensions: 'Actual Dimensions',
       dimensions: 'Dimensions',
       payload: 'Payload',
       authorizedRate: 'Authorized Rate',

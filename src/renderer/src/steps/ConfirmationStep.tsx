@@ -5,6 +5,8 @@ import type { ParcelData } from '../types'
 import KioskButton from '../components/KioskButton/KioskButton'
 import en from '../translations/en'
 
+const POUNDS_TO_KILOGRAMS = 0.45359237
+
 interface ConfirmationStepProps {
   detectedParcel: ParcelData | null
   onDiscard: () => void
@@ -17,6 +19,7 @@ const ConfirmationStep = ({
   onConfirm
 }: ConfirmationStepProps): React.JSX.Element => {
   const copy = en.steps.confirmation
+  const weightKg = detectedParcel ? (detectedParcel.weight * POUNDS_TO_KILOGRAMS).toFixed(2) : null
 
   return (
     <motion.div
@@ -34,6 +37,26 @@ const ConfirmationStep = ({
         </h3>
 
         <div className="space-y-4">
+
+          <div className="p-6 bg-slate-50/50 rounded-3xl border border-slate-100 flex items-center justify-between transition-colors hover:bg-slate-50">
+            <div className="flex items-center gap-5">
+              <div className="w-14 h-14 bg-white shadow-sm border border-slate-200 rounded-2xl flex items-center justify-center text-[#E71921]">
+                <Maximize size={26} />
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+                  {copy.actualDimensions}
+                </p>
+                <p className="text-lg font-black text-[#003366]">
+                  {detectedParcel?.actualDimensions}
+                </p>
+                <p className="mt-1 text-[11px] font-bold text-slate-400 uppercase tracking-[0.16em]">
+                  {detectedParcel?.actualDimensionsMetric}
+                </p>
+              </div>
+            </div>
+          </div>
+
           <div className="p-6 bg-slate-50/50 rounded-3xl border border-slate-100 flex items-center justify-between transition-colors hover:bg-slate-50">
             <div className="flex items-center gap-5">
               <div className="w-14 h-14 bg-white shadow-sm border border-slate-200 rounded-2xl flex items-center justify-center text-[#003366]">
@@ -55,10 +78,13 @@ const ConfirmationStep = ({
               </div>
               <div>
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
-                  {copy.spatialDimensions}
+                  {copy.boxDimensions}
                 </p>
                 <p className="text-lg font-black text-[#003366]">
                   {detectedParcel?.dimensions}
+                </p>
+                <p className="mt-1 text-[11px] font-bold text-slate-400 uppercase tracking-[0.16em]">
+                  {detectedParcel?.dimensionsMetric}
                 </p>
               </div>
             </div>
@@ -75,6 +101,9 @@ const ConfirmationStep = ({
                 </p>
                 <p className="text-lg font-black text-[#003366]">
                   {detectedParcel?.weight} LBS
+                </p>
+                <p className="mt-1 text-[11px] font-bold text-slate-400 uppercase tracking-[0.16em]">
+                  {copy.massDensityMetric} {weightKg ? `(${weightKg} kg)` : ''}
                 </p>
               </div>
             </div>

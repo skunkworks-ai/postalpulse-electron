@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
 import { motion } from 'motion/react'
 import { Move } from 'lucide-react'
-import { BOX_SPECS } from '../constants'
+import { BOX_SPECS, getFittingBox, kilogramsToPounds } from '../constants'
 import type { ParcelData } from '../types'
 import type { RootState } from '../store'
 import KioskButton from '../components/KioskButton/KioskButton'
@@ -12,31 +12,179 @@ interface DetectionStepProps {
   onSuccess: (parcel: ParcelData) => void
 }
 
+interface RealSenseDimensions {
+  length: number
+  width: number
+  height: number
+}
+
+interface RealSenseObject {
+  size?: [number, number, number] | number[]
+  distance?: number
+}
+
+interface RealSenseMessage {
+  objects?: RealSenseObject[]
+}
+
+const METER_TO_INCH = 39.37007874
+const INCH_TO_METER = 0.0254
+const REALSENSE_TIMEOUT_MS = 5000
+
+const toWebSocketURL = (url: string): string => {
+  if (url.startsWith('ws://') || url.startsWith('wss://')) {
+    return url
+  }
+  if (url.startsWith('http://')) {
+    return `ws://${url.slice('http://'.length)}`
+  }
+  if (url.startsWith('https://')) {
+    return `wss://${url.slice('https://'.length)}`
+  }
+  return `ws://${url}`
+}
+
+const getDimensionsFromMessage = (message: RealSenseMessage): RealSenseDimensions | null => {
+  const objects = message.objects
+  if (!Array.isArray(objects) || objects.length === 0) return null
+
+  const candidates = objects
+    .map((obj) => {
+      const size = obj.size
+      if (!Array.isArray(size) || size.length < 3) return null
+      const [length, width, height] = size.map((value) => Number(value))
+      if ([length, width, height].some((value) => !Number.isFinite(value) || value <= 0)) return null
+      return {
+        length,
+        width,
+        height,
+        distance: Number(obj.distance)
+      }
+    })
+    .filter((value): value is { length: number; width: number; height: number; distance: number } => value !== null)
+
+  if (candidates.length === 0) return null
+
+  const best = candidates.reduce((closest, current) => {
+    const closestDistance = Number.isFinite(closest.distance) ? closest.distance : Number.POSITIVE_INFINITY
+    const currentDistance = Number.isFinite(current.distance) ? current.distance : Number.POSITIVE_INFINITY
+    return currentDistance < closestDistance ? current : closest
+  })
+
+  return {
+    length: best.length * METER_TO_INCH,
+    width: best.width * METER_TO_INCH,
+    height: best.height * METER_TO_INCH
+  }
+}
+
+const formatDimensions = (dimensions: RealSenseDimensions): string =>
+  `${dimensions.length.toFixed(1)}" x ${dimensions.width.toFixed(1)}" x ${dimensions.height.toFixed(1)}"`
+
+const formatDimensionsInMeters = (length: number, width: number, height: number): string =>
+  `${(length * INCH_TO_METER).toFixed(2)}m x ${(width * INCH_TO_METER).toFixed(2)}m x ${(height * INCH_TO_METER).toFixed(2)}m`
+
 const DetectionStep = ({ onSuccess }: DetectionStepProps): React.JSX.Element => {
+  const unisonAddressURL = useSelector((state: RootState) => state.config.unisonAddressURL)
   const casPD2AddressURL = useSelector((state: RootState) => state.config.casPD2AddressURL)
   const realSenseAddressURL = useSelector((state: RootState) => state.config.realSenseAddressURL)
   const [detectionProgress, setDetectionProgress] = useState(0)
   const [detectionError, setDetectionError] = useState(false)
 
+  interface WeightResponse {
+    data?: {
+      weight?: number | string
+      value?: number | string
+      unit?: string
+    }
+  }
+
+  const fetchWeight = async (): Promise<number> => {
+    const response = await fetch(casPD2AddressURL)
+    const payload = (await response.json()) as WeightResponse
+    const data = payload.data ?? {}
+    const rawWeight = Number(data.weight ?? data.value ?? 0)
+
+    if (!Number.isFinite(rawWeight) || rawWeight <= 0) {
+      throw new Error('Invalid weight response from CasPD2')
+    }
+
+    return data.unit === 'kg' ? kilogramsToPounds(rawWeight) : rawWeight
+  }
+
+  const fetchRealSenseDimensions = async (): Promise<RealSenseDimensions> => {
+    const wsURL = toWebSocketURL(realSenseAddressURL)
+
+    return await new Promise<RealSenseDimensions>((resolve, reject) => {
+      let socket: WebSocket | null = null
+      const timeout = window.setTimeout(() => {
+        socket?.close()
+        reject(new Error('Timed out waiting for RealSense dimensions'))
+      }, REALSENSE_TIMEOUT_MS)
+
+      const cleanup = (): void => {
+        window.clearTimeout(timeout)
+      }
+
+      try {
+        socket = new WebSocket(wsURL)
+      } catch {
+        cleanup()
+        reject(new Error('Invalid RealSense WebSocket URL'))
+        return
+      }
+
+      socket.onmessage = (event) => {
+        try {
+          const payload = JSON.parse(String(event.data)) as RealSenseMessage
+          const dimensions = getDimensionsFromMessage(payload)
+          if (!dimensions) return
+          cleanup()
+          socket?.close()
+          resolve(dimensions)
+        } catch {
+          // Ignore malformed message frames and continue waiting.
+        }
+      }
+
+      socket.onerror = () => {
+        cleanup()
+        socket?.close()
+        reject(new Error('Failed to read from RealSense WebSocket'))
+      }
+
+      socket.onclose = () => {
+        cleanup()
+      }
+    })
+  }
+
   const handleDetectionSuccess = async (): Promise<void> => {
     try {
-      const res = await fetch(casPD2AddressURL)
-      const data = await res.json()
-      const weight = parseFloat(data.weight ?? data.value ?? 0)
+      const [weight, dimensions] = await Promise.all([
+        fetchWeight(),
+        fetchRealSenseDimensions()
+      ])
 
-      // Determine box size based on weight
-      let size = BOX_SPECS.SMALL
-      if (weight > 6.6) size = BOX_SPECS.LARGE
-      else if (weight > 2.2) size = BOX_SPECS.MEDIUM
+      const fittingBox = getFittingBox(dimensions.length, dimensions.width, dimensions.height, weight, 'imperial')
+      const size = fittingBox?.spec ?? BOX_SPECS.LARGE
+
+      if (!fittingBox) {
+        console.warn('No fitting box matched detected parcel. Falling back to largest box.')
+      }
 
       const parcel: ParcelData = {
         size: size.name,
         dimensions: `${size.maxL}" x ${size.maxW}" x ${size.maxH}"`,
+        dimensionsMetric: formatDimensionsInMeters(size.maxL, size.maxW, size.maxH),
+        actualDimensions: formatDimensions(dimensions),
+        actualDimensionsMetric: formatDimensionsInMeters(dimensions.length, dimensions.width, dimensions.height),
         weight,
         price: size.price
       }
       onSuccess(parcel)
-    } catch {
+    } catch (error) {
+      console.error(error)
       setDetectionError(true)
     }
   }
@@ -67,6 +215,9 @@ const DetectionStep = ({ onSuccess }: DetectionStepProps): React.JSX.Element => 
     const sampleParcel: ParcelData = {
       size: sampleSize.name,
       dimensions: `${sampleSize.maxL}" x ${sampleSize.maxW}" x ${sampleSize.maxH}"`,
+      dimensionsMetric: formatDimensionsInMeters(sampleSize.maxL, sampleSize.maxW, sampleSize.maxH),
+      actualDimensions: `${sampleSize.maxL}" x ${sampleSize.maxW}" x ${sampleSize.maxH}"`,
+      actualDimensionsMetric: formatDimensionsInMeters(sampleSize.maxL, sampleSize.maxW, sampleSize.maxH),
       weight: 3.5,
       price: sampleSize.price
     }
@@ -136,7 +287,7 @@ const DetectionStep = ({ onSuccess }: DetectionStepProps): React.JSX.Element => 
             ) : (
               <div className="relative w-full h-full bg-[#001122]">
                 <img
-                  src={realSenseAddressURL}
+                  src={unisonAddressURL}
                   alt={en.steps.detection.cameraFeedAlt}
                   className="absolute inset-0 w-full h-full object-cover"
                 />

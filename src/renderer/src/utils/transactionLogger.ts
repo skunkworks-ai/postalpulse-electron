@@ -23,6 +23,7 @@ export async function logSession(session: SessionData): Promise<void> {
       recipientName: session.recipient.name,
       recipientAddress,
       parcelSize: session.parcel.size,
+      parcelActualDimensions: session.parcel.actualDimensions,
       parcelWeight: session.parcel.weight,
       parcelPrice: session.parcel.price
     }

@@ -1,6 +1,6 @@
 {
   "name": "sali-postalpulse-electron",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "PostalPulse Express - Automated USPS self-service shipping kiosk",
   "main": "./out/main/index.js",
   "author": "PostalPulse",
@@ -10,7 +10,9 @@
     "build": "electron-vite build",
     "postinstall": "electron-builder install-app-deps",
     "build:unpack": "npm run build && electron-builder --dir",
-    "build:win": "npm run build && electron-builder --win",
+    "build:win": "npm run build && electron-builder --win nsis --x64",
+    "build:win:arm64": "npm run build && electron-builder --win nsis --arm64",
+    "build:win:all": "npm run build && electron-builder --win nsis --x64 --arm64",
     "build:mac": "npm run build && electron-builder --mac",
     "build:linux": "npm run build && electron-builder --linux",
     "lint": "tsc --noEmit"
