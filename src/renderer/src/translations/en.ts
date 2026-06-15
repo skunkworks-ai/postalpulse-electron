@@ -130,7 +130,7 @@ const en = {
       retrieveTag: 'Retrieve Tag',
       retrieveTagDescription:
         'Your secure identification tag has been deployed to the output module located at the base of the terminal.',
-      trackingHashLabel: 'Tracking Hash',
+      trackingHashLabel: 'Tracking Number',
       digiRecord: 'DIGI-RECORD',
       accessReceipt: 'Access Receipt',
       accessReceiptDescription:

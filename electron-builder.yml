@@ -1,5 +1,5 @@
-appId: com.postalpulse.express
-productName: PostalPulse Express
+appId: com.meldcx.meldpost
+productName: MeldPOST
 directories:
   buildResources: build
 files:
@@ -12,18 +12,19 @@ files:
 asarUnpack:
   - resources/**
 win:
-  executableName: PostalPulse Express
-  icon: build/icon.ico
+  executableName: MeldPOST
+  icon: icon.ico
   target:
     - target: nsis
       arch:
         - x64
         - arm64
-  signAndEditExecutable: false
+  signAndEditExecutable: true
 nsis:
   artifactName: ${name}-${version}-${arch}-setup.${ext}
-  installerIcon: build/icon.ico
-  uninstallerIcon: build/icon.ico
+  installerIcon: icon.ico
+  installerHeaderIcon: icon.ico
+  uninstallerIcon: icon.ico
   shortcutName: ${productName}
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
@@ -44,11 +45,11 @@ linux:
     - AppImage
     - snap
     - deb
-  maintainer: postalpulse.com
+  maintainer: meldcx.com
   category: Utility
 appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false
 publish:
   provider: generic
-  url: https://example.com/auto-updates
+  url: https://meldcx.com/auto-updates

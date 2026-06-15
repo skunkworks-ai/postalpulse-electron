@@ -1,6 +1,6 @@
-import React, { useEffect, useRef } from 'react'
-import { CheckCircle2, RefreshCcw, Printer, Mail, QrCode, FileText } from 'lucide-react'
-import { motion } from 'motion/react'
+import React, { useEffect, useRef, useState } from 'react'
+import { CheckCircle2, RefreshCcw, Printer, Mail, QrCode, FileText, X } from 'lucide-react'
+import { motion, AnimatePresence } from 'motion/react'
 import JsBarcode from 'jsbarcode'
 import KioskButton from '../components/KioskButton/KioskButton'
 import en from '../translations/en'
@@ -13,6 +13,7 @@ const SuccessStep = ({ onReset }: SuccessStepProps): React.JSX.Element => {
   const copy = en.steps.success
   const barcodeRef = useRef<SVGSVGElement>(null)
   const trackingNumber = '9405500000000000001'
+  const [showPrintModal, setShowPrintModal] = useState(false)
 
   useEffect(() => {
     if (barcodeRef.current) {
@@ -26,7 +27,12 @@ const SuccessStep = ({ onReset }: SuccessStepProps): React.JSX.Element => {
     }
   }, [])
 
+  const handlePrint = (): void => {
+    setShowPrintModal(true)
+  }
+
   return (
+    <>
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -77,9 +83,15 @@ const SuccessStep = ({ onReset }: SuccessStepProps): React.JSX.Element => {
             <p className="text-2xl font-black text-(--pp-brand-primary) font-mono tracking-tight mb-6">
               {trackingNumber}
             </p>
-            <div className="flex justify-center bg-white p-4 rounded-lg border border-slate-200">
+            <div className="flex justify-center bg-white p-4 rounded-lg border border-slate-200 mb-5">
               <svg ref={barcodeRef}></svg>
             </div>
+            <KioskButton
+              onClick={handlePrint}
+              className="w-full max-w-full bg-(--pp-brand-primary) text-white py-6 rounded-2xl font-black uppercase text-[11px] tracking-[0.3em] shadow-2xl shadow-blue-900/40 flex items-center justify-center gap-3 transition-all hover:bg-(--pp-black) cursor-pointer font-varela-round"
+            >
+              <Printer size={18} className="text-(--pp-brand-accent)" /> {copy.printLabel}
+            </KioskButton>
           </div>
         </motion.div>
 
@@ -106,9 +118,6 @@ const SuccessStep = ({ onReset }: SuccessStepProps): React.JSX.Element => {
             <KioskButton className="w-full bg-white/10 hover:bg-white/20 border-2 border-white/10 py-4 rounded-xl font-black text-white text-[10px] uppercase tracking-widest flex items-center justify-center gap-3 transition-all font-varela-round">
               <QrCode size={18} className="text-(--pp-brand-accent)" /> {copy.dynamicQrScan}
             </KioskButton>
-            <KioskButton className="w-full bg-white/10 hover:bg-white/20 border-2 border-white/10 py-4 rounded-xl font-black text-white text-[10px] uppercase tracking-widest flex items-center justify-center gap-3 transition-all font-varela-round">
-              <Printer size={18} className="text-(--pp-brand-accent)" /> {copy.printLabel}
-            </KioskButton>
           </div>
         </motion.div>
       </div>
@@ -120,6 +129,74 @@ const SuccessStep = ({ onReset }: SuccessStepProps): React.JSX.Element => {
         {copy.terminateSession} <RefreshCcw size={18} />
       </KioskButton>
     </motion.div>
+
+    <AnimatePresence>
+        {showPrintModal && (
+          <div className="fixed inset-0 z-999 flex items-center justify-center p-6">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-slate-900/40 backdrop-blur-md"
+              onClick={() => setShowPrintModal(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="kiosk-card bg-white w-full max-w-md rounded-4xl p-10 shadow-[0_40px_80px_rgba(0,0,0,0.2)] relative z-10 text-center border border-slate-200"
+            >
+              <button
+                onClick={() => setShowPrintModal(false)}
+                className="absolute top-6 right-6 text-slate-400 hover:text-slate-600 transition-colors"
+                aria-label="Close"
+              >
+                <X size={24} />
+              </button>
+
+              <div className="w-20 h-20 bg-blue-50 text-(--pp-brand-primary) rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm">
+                <Printer size={40} strokeWidth={2} />
+              </div>
+
+              <h3 className="kiosk-title text-2xl font-black text-(--pp-brand-primary) uppercase tracking-tighter mb-2">
+                Label Printing
+              </h3>
+              <p className="kiosk-subtext text-slate-400 font-bold text-xs uppercase tracking-widest mb-8">
+                Sending label to thermal printer...
+              </p>
+
+              <div className="space-y-3">
+                <div className="flex items-center justify-center gap-2 py-4">
+                  <motion.div
+                    animate={{ scale: [1, 1.2, 1] }}
+                    transition={{ duration: 1.5, repeat: Number.POSITIVE_INFINITY }}
+                    className="w-3 h-3 rounded-full bg-(--pp-brand-accent)"
+                  />
+                  <motion.div
+                    animate={{ scale: [1, 1.2, 1] }}
+                    transition={{ duration: 1.5, repeat: Number.POSITIVE_INFINITY, delay: 0.2 }}
+                    className="w-3 h-3 rounded-full bg-(--pp-brand-accent)"
+                  />
+                  <motion.div
+                    animate={{ scale: [1, 1.2, 1] }}
+                    transition={{ duration: 1.5, repeat: Number.POSITIVE_INFINITY, delay: 0.4 }}
+                    className="w-3 h-3 rounded-full bg-(--pp-brand-accent)"
+                  />
+                </div>
+                <p className="text-slate-500 font-semibold text-sm">Processing...</p>
+              </div>
+
+              <button
+                onClick={() => setShowPrintModal(false)}
+                className="w-full mt-8 bg-(--pp-brand-primary) text-white py-3 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-lg hover:bg-(--pp-black) transition-all cursor-pointer"
+              >
+                Dismiss
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+    </>
   )
 }
 

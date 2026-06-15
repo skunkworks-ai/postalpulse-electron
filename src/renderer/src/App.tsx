@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useSelector } from 'react-redux'
 import { ChevronRight, Timer, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
+import bgImage from './assets/bg.png'
 import ConfigPage from './pages/Config/Config'
 import Header from './components/Header'
 import StepIndicator from './components/StepIndicator'
@@ -150,88 +151,101 @@ const App = (): React.JSX.Element => {
       <Header onLogoTap={handleLogoTap} />
       <StepIndicator currentStep={currentStep} />
 
-      <main className="kiosk-stage flex-1 flex flex-col relative bg-slate-50/50">
-        <AnimatePresence mode="wait">
-          {currentStep === STEPS.WELCOME && (
-            <WelcomeStep key={STEPS.WELCOME} onStart={() => setCurrentStep(STEPS.DETECTION)} />
-          )}
+      <main className="kiosk-stage flex-1 flex flex-col relative bg-slate-50/50 overflow-hidden z-10">
+        <div id="background-image" className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-center z-0">
+          <img
+            src={bgImage}
+            alt=""
+            aria-hidden="true"
+            className="w-full max-w-none object-contain translate-y-8 select-none scale-180 origin-center opacity-50"
+          />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-210 bg-linear-to-b from-(--pp-background) via-white/20 to-transparent scale-180 origin-center z-10" />
+        </div>
 
-          {currentStep === STEPS.DETECTION && (
-            <DetectionStep
-              key={STEPS.DETECTION}
-              onSuccess={(parcel) => {
-                setDetectedParcel(parcel)
-                setCurrentStep(STEPS.CONFIRMATION)
-              }}
-            />
-          )}
+        <div id="container" className="z-1 flex-1 flex flex-col">
+          <AnimatePresence mode="wait">
+            {currentStep === STEPS.WELCOME && (
+              <WelcomeStep key={STEPS.WELCOME} onStart={() => setCurrentStep(STEPS.DETECTION)} />
+            )}
 
-          {currentStep === STEPS.CONFIRMATION && (
-            <ConfirmationStep
-              key={STEPS.CONFIRMATION}
-              detectedParcel={detectedParcel}
-              onDiscard={() => {
-                resetAddresses()
-                setCurrentStep(STEPS.DETECTION)
-              }}
-              onConfirm={() => setCurrentStep(STEPS.SENDER)}
-            />
-          )}
-
-          {(currentStep === STEPS.SENDER || currentStep === STEPS.RECIPIENT) && (
-            <AddressStep
-              key={currentStep}
-              currentStep={currentStep}
-              sender={sender}
-              setSender={setSender}
-              recipient={recipient}
-              setRecipient={setRecipient}
-              initialManualEntry={manualAddressEntry}
-              onBack={() => {
-                if (currentStep === STEPS.SENDER) {
-                  setManualAddressEntry(false)
+            {currentStep === STEPS.DETECTION && (
+              <DetectionStep
+                key={STEPS.DETECTION}
+                onSuccess={(parcel) => {
+                  setDetectedParcel(parcel)
                   setCurrentStep(STEPS.CONFIRMATION)
-                } else {
-                  setCurrentStep(STEPS.SENDER)
-                }
-              }}
-              onNext={() => {
-                if (currentStep === STEPS.SENDER) {
-                  setCurrentStep(STEPS.RECIPIENT)
-                } else {
-                  setManualAddressEntry(false)
-                  setCurrentStep(STEPS.VERIFY)
-                }
-              }}
-            />
-          )}
+                }}
+              />
+            )}
 
-          {currentStep === STEPS.VERIFY && (
-            <VerifyStep
-              key={STEPS.VERIFY}
-              sender={sender}
-              recipient={recipient}
-              detectedParcel={detectedParcel}
-              onBack={() => setCurrentStep(STEPS.RECIPIENT)}
-              onNext={() => setCurrentStep(STEPS.PAYMENT)}
-              onEditSender={() => { setManualAddressEntry(true); setCurrentStep(STEPS.SENDER) }}
-              onEditRecipient={() => { setManualAddressEntry(true); setCurrentStep(STEPS.RECIPIENT) }}
-            />
-          )}
+            {currentStep === STEPS.CONFIRMATION && (
+              <ConfirmationStep
+                key={STEPS.CONFIRMATION}
+                detectedParcel={detectedParcel}
+                onDiscard={() => {
+                  resetAddresses()
+                  setCurrentStep(STEPS.DETECTION)
+                }}
+                onConfirm={() => setCurrentStep(STEPS.SENDER)}
+              />
+            )}
 
-          {currentStep === STEPS.PAYMENT && (
-            <PaymentStep
-              key={STEPS.PAYMENT}
-              detectedParcel={detectedParcel}
-              onSuccess={() => setCurrentStep(STEPS.SUCCESS)}
-              onBack={() => setCurrentStep(STEPS.VERIFY)}
-            />
-          )}
+            {(currentStep === STEPS.SENDER || currentStep === STEPS.RECIPIENT) && (
+              <AddressStep
+                key={currentStep}
+                currentStep={currentStep}
+                sender={sender}
+                setSender={setSender}
+                recipient={recipient}
+                setRecipient={setRecipient}
+                initialManualEntry={manualAddressEntry}
+                onBack={() => {
+                  if (currentStep === STEPS.SENDER) {
+                    setManualAddressEntry(false)
+                    setCurrentStep(STEPS.CONFIRMATION)
+                  } else {
+                    setCurrentStep(STEPS.SENDER)
+                  }
+                }}
+                onNext={() => {
+                  if (currentStep === STEPS.SENDER) {
+                    setCurrentStep(STEPS.RECIPIENT)
+                  } else {
+                    setManualAddressEntry(false)
+                    setCurrentStep(STEPS.VERIFY)
+                  }
+                }}
+              />
+            )}
 
-          {currentStep === STEPS.SUCCESS && (
-            <SuccessStep key={STEPS.SUCCESS} onReset={resetApp} />
-          )}
-        </AnimatePresence>
+            {currentStep === STEPS.VERIFY && (
+              <VerifyStep
+                key={STEPS.VERIFY}
+                sender={sender}
+                recipient={recipient}
+                detectedParcel={detectedParcel}
+                onBack={() => setCurrentStep(STEPS.RECIPIENT)}
+                onNext={() => setCurrentStep(STEPS.PAYMENT)}
+                onEditSender={() => { setManualAddressEntry(true); setCurrentStep(STEPS.SENDER) }}
+                onEditRecipient={() => { setManualAddressEntry(true); setCurrentStep(STEPS.RECIPIENT) }}
+              />
+            )}
+
+            {currentStep === STEPS.PAYMENT && (
+              <PaymentStep
+                key={STEPS.PAYMENT}
+                detectedParcel={detectedParcel}
+                onSuccess={() => setCurrentStep(STEPS.SUCCESS)}
+                onBack={() => setCurrentStep(STEPS.VERIFY)}
+              />
+            )}
+
+            {currentStep === STEPS.SUCCESS && (
+              <SuccessStep key={STEPS.SUCCESS} onReset={resetApp} />
+            )}
+          </AnimatePresence>
+        </div>
+
       </main>
 
       {/* --- Config Page (hidden: tap logo 5×) --- */}
@@ -284,18 +298,19 @@ const App = (): React.JSX.Element => {
         </div>
       )}
 
-      <footer className="bg-white py-5 px-10 border-t border-slate-100 flex justify-between items-center text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">
+
+      <footer className="bg-white py-5 px-10 border-t border-slate-100 flex justify-between items-center text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] z-1">
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
             <span>Node Status: Operational</span>
           </div>
           <span className="opacity-30">|</span>
-          <span>PostalPulse Core Protocol v4.2.0</span>
+          <span>MeldPOST Core Protocol v0.0.0</span>
         </div>
         <div className="flex gap-6 items-center">
           <span>Security Layer: AES-256</span>
-          <span>© 2026 Unified Postal Systems</span>
+          <span>© 2026 meldCX</span>
         </div>
       </footer>
     </div>
