@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useSelector } from 'react-redux'
 import { ChevronRight, Timer, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import ConfigPage from './pages/Config/Config'
@@ -12,10 +13,12 @@ import VerifyStep from './steps/VerifyStep'
 import PaymentStep from './steps/PaymentStep'
 import SuccessStep from './steps/SuccessStep'
 import { STEPS, IDLE_TIMEOUT_SEC, COUNTDOWN_SEC } from './constants'
+import type { RootState } from './store'
 import { logSession } from './utils/transactionLogger'
 import type { AddressRecord, ParcelData } from './types'
 
 const App = (): React.JSX.Element => {
+  const themeColors = useSelector((state: RootState) => state.config.colors)
   const [currentStep, setCurrentStep] = useState(STEPS.WELCOME)
   const [detectedParcel, setDetectedParcel] = useState<ParcelData | null>(null)
   const [manualAddressEntry, setManualAddressEntry] = useState(false)
@@ -130,8 +133,20 @@ const App = (): React.JSX.Element => {
     setShowTimeoutModal(false)
   }
 
+  useEffect(() => {
+    const rootStyle = document.documentElement.style
+    rootStyle.setProperty('--pp-brand-primary', themeColors.brandPrimary)
+    rootStyle.setProperty('--pp-brand-primary-dark', themeColors.brandPrimaryDark)
+    rootStyle.setProperty('--pp-brand-accent', themeColors.brandAccent)
+    rootStyle.setProperty('--pp-background', themeColors.background)
+    rootStyle.setProperty('--pp-black', themeColors.black)
+    rootStyle.setProperty('--pp-white', themeColors.white)
+    rootStyle.setProperty('--pp-danger-dark', themeColors.dangerDark)
+    rootStyle.setProperty('--pp-keyboard', themeColors.keyboard)
+  }, [themeColors])
+
   return (
-    <div className="kiosk-app min-h-screen bg-[#F8FAFC] text-slate-900 font-sans flex flex-col overflow-hidden select-none">
+    <div className="kiosk-app min-h-screen bg-(--pp-background) text-slate-900 font-sans flex flex-col overflow-hidden select-none">
       <Header onLogoTap={handleLogoTap} />
       <StepIndicator currentStep={currentStep} />
 
@@ -237,10 +252,10 @@ const App = (): React.JSX.Element => {
             animate={{ opacity: 1, scale: 1 }}
             className="kiosk-card bg-white w-full max-w-md rounded-4xl p-10 shadow-[0_40px_80px_rgba(0,0,0,0.2)] relative z-10 text-center border border-slate-200"
           >
-            <div className="w-24 h-24 bg-red-50 text-[#E71921] rounded-3xl flex items-center justify-center mx-auto mb-8 transform rotate-6 border-2 border-red-100 shadow-sm">
+            <div className="w-24 h-24 bg-red-50 text-(--pp-brand-accent) rounded-3xl flex items-center justify-center mx-auto mb-8 transform rotate-6 border-2 border-red-100 shadow-sm">
               <Timer size={40} strokeWidth={2.5} />
             </div>
-            <h3 className="kiosk-title text-2xl font-black text-[#003366] italic uppercase tracking-tighter mb-2 leading-none">
+            <h3 className="kiosk-title text-2xl font-black text-(--pp-brand-primary) italic uppercase tracking-tighter mb-2 leading-none">
               Session Guard Active
             </h3>
             <p className="kiosk-subtext text-slate-400 font-bold text-xs uppercase tracking-widest mb-10">
@@ -248,13 +263,13 @@ const App = (): React.JSX.Element => {
             </p>
 
             <div className="w-24 h-24 rounded-4xl border-4 border-slate-100 bg-slate-50 flex items-center justify-center mx-auto mb-12 shadow-inner">
-              <span className="text-4xl font-black text-[#003366] italic">{countdown}</span>
+              <span className="text-4xl font-black text-(--pp-brand-primary) italic">{countdown}</span>
             </div>
 
             <div className="flex flex-col gap-3">
               <button
                 onClick={stayActive}
-                className="w-full bg-[#003366] text-white py-5 rounded-xl font-black uppercase text-[11px] tracking-widest shadow-2xl shadow-blue-900/20 flex items-center justify-center gap-3 active:scale-95 transition-all cursor-pointer"
+                className="w-full bg-(--pp-brand-primary) text-white py-5 rounded-xl font-black uppercase text-[11px] tracking-widest shadow-2xl shadow-blue-900/20 flex items-center justify-center gap-3 active:scale-95 transition-all cursor-pointer"
               >
                 EXTEND SESSION <ChevronRight size={18} />
               </button>

@@ -47,7 +47,7 @@ const StepIndicator = ({ currentStep }: StepIndicatorProps): React.JSX.Element =
               <div
                 className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shrink-0 ${
                   isActive
-                    ? 'bg-[#003366] shadow-lg'
+                    ? 'bg-(--pp-brand-primary) shadow-lg'
                     : isCompleted
                       ? 'bg-green-500'
                       : isUpcoming

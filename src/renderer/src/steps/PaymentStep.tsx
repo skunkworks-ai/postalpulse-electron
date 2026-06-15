@@ -58,8 +58,8 @@ const PaymentStep = ({ detectedParcel, onSuccess, onBack }: PaymentStepProps): R
               animate={{ opacity: 1, scale: 1 }}
               className="flex flex-col items-center gap-6 z-30 bg-white p-8 rounded-4xl shadow-2xl border border-slate-100"
             >
-              <RefreshCcw size={48} className="text-[#003366] animate-spin stroke-3" />
-              <span className="text-[11px] font-black uppercase tracking-[0.3em] text-[#003366] italic">
+              <RefreshCcw size={48} className="text-(--pp-brand-primary) animate-spin stroke-3" />
+              <span className="text-[11px] font-black uppercase tracking-[0.3em] text-(--pp-brand-primary)">
                 {isPrinting ? copy.generatingTag : copy.processing}
               </span>
             </motion.div>
@@ -80,14 +80,14 @@ const PaymentStep = ({ detectedParcel, onSuccess, onBack }: PaymentStepProps): R
             </p>
 
             <div className="p-6 bg-slate-50 border border-slate-200 rounded-2xl mb-10">
-              <p className="text-slate-500 font-semibold text-sm italic">
+              <p className="text-slate-500 font-semibold text-sm">
                 {copy.description}
               </p>
             </div>
 
             <KioskButton
               onClick={handlePayment}
-              className="w-full bg-slate-900 text-white py-6 rounded-xl font-bold uppercase text-sm tracking-widest shadow-2xl shadow-slate-900/20 transition-all hover:bg-slate-800 cursor-pointer"
+              className="w-full bg-(--pp-brand-primary) text-white py-6 rounded-xl font-bold uppercase text-sm tracking-widest shadow-2xl shadow-slate-900/20 transition-all hover:bg-slate-800 cursor-pointer font-varela-round"
             >
               {copy.simulateEncryption}
             </KioskButton>
@@ -107,7 +107,7 @@ const PaymentStep = ({ detectedParcel, onSuccess, onBack }: PaymentStepProps): R
         {!isProcessing && (
           <KioskButton
             onClick={onBack}
-            className="mt-8 text-slate-400 font-bold uppercase text-[10px] tracking-widest hover:text-rose-500 transition-colors cursor-pointer"
+            className="mt-8 text-slate-400 font-bold uppercase text-[10px] tracking-widest hover:text-rose-500 transition-colors cursor-pointer font-varela-round"
           >
             {copy.deauthorizeTransaction}
           </KioskButton>

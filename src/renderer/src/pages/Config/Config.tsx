@@ -1,14 +1,15 @@
 import React, { useState } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import { motion } from 'motion/react'
-import { Settings, Save, X, CheckCircle2, Camera, Weight, Globe } from 'lucide-react'
+import { Settings, Save, X, CheckCircle2, Camera, Weight, Globe, Type } from 'lucide-react'
 import { RootState } from '../../store'
 import {
   setUnisonAddressURL,
   setRealSenseAddressURL,
   setCasPD2AddressURL,
   setUnit,
-  setGoogleMapsApiKey
+  setGoogleMapsApiKey,
+  setHeaderTitle
 } from '../../features/config/configSlice'
 import ControlledInput from '../../contexts/KeyboardProvider/ControlledInput'
 
@@ -47,6 +48,12 @@ const FIELDS: Field[] = [
     key: 'googleMapsApiKey',
     icon: <Globe size={18} />,
     description: 'Places Autocomplete & Address Validation'
+  },
+  {
+    label: 'Header Title',
+    key: 'headerTitle',
+    icon: <Type size={18} />,
+    description: 'Main app title shown in kiosk header'
   }
 ]
 
@@ -59,7 +66,8 @@ const ConfigPage: React.FC<ConfigPageProps> = ({ onClose }) => {
     realSenseAddressURL: config.realSenseAddressURL,
     casPD2AddressURL: config.casPD2AddressURL,
     unit: config.unit,
-    googleMapsApiKey: config.googleMapsApiKey
+    googleMapsApiKey: config.googleMapsApiKey,
+    headerTitle: config.headerTitle
   })
 
   const [saved, setSaved] = useState(false)
@@ -70,6 +78,7 @@ const ConfigPage: React.FC<ConfigPageProps> = ({ onClose }) => {
     dispatch(setCasPD2AddressURL(values.casPD2AddressURL))
     dispatch(setUnit(values.unit as 'lb' | 'kg'))
     dispatch(setGoogleMapsApiKey(values.googleMapsApiKey))
+    dispatch(setHeaderTitle(values.headerTitle))
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
   }
@@ -79,16 +88,16 @@ const ConfigPage: React.FC<ConfigPageProps> = ({ onClose }) => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[9998] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-md"
+      className="fixed inset-0 z-9998 flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-md"
     >
       <motion.div
         initial={{ opacity: 0, scale: 0.97, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.97, y: 20 }}
-        className="bg-white w-full max-w-3xl rounded-[32px] overflow-hidden shadow-[0_40px_80px_rgba(0,0,0,0.25)] border border-slate-200 flex flex-col max-h-[90vh]"
+        className="bg-white w-full max-w-3xl rounded-4xl overflow-hidden shadow-[0_40px_80px_rgba(0,0,0,0.25)] border border-slate-200 flex flex-col max-h-[90vh]"
       >
         {/* Header */}
-        <div className="bg-[#003366] px-10 py-6 flex items-center justify-between flex-shrink-0">
+        <div className="bg-(--pp-brand-primary) px-10 py-6 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-4">
             <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center text-white">
               <Settings size={20} />
@@ -114,7 +123,7 @@ const ConfigPage: React.FC<ConfigPageProps> = ({ onClose }) => {
         <div className="overflow-y-auto flex-1 p-10 space-y-4">
           {FIELDS.map((field) => (
             <div key={field.key} className="flex items-center gap-5">
-              <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-[#003366] flex-shrink-0">
+              <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-(--pp-brand-primary) shrink-0">
                 {field.icon}
               </div>
               <div className="flex-1 min-w-0">
@@ -128,7 +137,7 @@ const ConfigPage: React.FC<ConfigPageProps> = ({ onClose }) => {
                   value={values[field.key] as string}
                   setValue={(val) => setValues((prev) => ({ ...prev, [field.key]: val }))}
                   placeholder={`http://localhost:...`}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-mono text-sm text-slate-900 focus:outline-none focus:border-[#003366]/30 focus:ring-2 focus:ring-[#003366]/10 transition-all"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-mono text-sm text-slate-900 focus:outline-none focus:border-(--pp-brand-primary)/30 focus:ring-2 focus:ring-(--pp-brand-primary)/10 transition-all"
                 />
               </div>
             </div>
@@ -136,7 +145,7 @@ const ConfigPage: React.FC<ConfigPageProps> = ({ onClose }) => {
 
           {/* Unit toggle */}
           <div className="flex items-center gap-5 pt-2">
-            <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-[#003366] flex-shrink-0">
+            <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-(--pp-brand-primary) shrink-0">
               <Weight size={18} />
             </div>
             <div className="flex-1">
@@ -150,7 +159,7 @@ const ConfigPage: React.FC<ConfigPageProps> = ({ onClose }) => {
                     onClick={() => setValues((prev) => ({ ...prev, unit: u }))}
                     className={`px-6 py-2.5 rounded-xl font-black uppercase text-sm tracking-widest transition-all cursor-pointer ${
                       values.unit === u
-                        ? 'bg-[#003366] text-white shadow-lg shadow-blue-900/20'
+                        ? 'bg-(--pp-brand-primary) text-white shadow-lg shadow-blue-900/20'
                         : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
                     }`}
                   >
@@ -163,7 +172,7 @@ const ConfigPage: React.FC<ConfigPageProps> = ({ onClose }) => {
         </div>
 
         {/* Footer */}
-        <div className="px-10 py-6 border-t border-slate-100 flex items-center justify-between flex-shrink-0 bg-slate-50/50">
+        <div className="px-10 py-6 border-t border-slate-100 flex items-center justify-between shrink-0 bg-slate-50/50">
           <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em]">
             Changes are persisted to Electron Store
           </p>
@@ -179,7 +188,7 @@ const ConfigPage: React.FC<ConfigPageProps> = ({ onClose }) => {
               className={`px-8 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest flex items-center gap-2 transition-all cursor-pointer shadow-lg ${
                 saved
                   ? 'bg-emerald-500 text-white shadow-emerald-500/20'
-                  : 'bg-[#003366] text-white hover:bg-[#002244] shadow-blue-900/20'
+                  : 'bg-(--pp-brand-primary) text-white hover:bg-(--pp-brand-primary-dark) shadow-blue-900/20'
               }`}
             >
               {saved ? (

@@ -1,8 +1,8 @@
 const en = {
   header: {
-    title: 'POSTALPULSE',
-    subtitle: 'Unofficial Service Point',
-    hub: 'PostalPulse Hub',
+    title: 'MeldPOST',
+    subtitle: 'Your Parcel Lodgement Service',
+    hub: 'MeldPOST Hub',
   },
   stepIndicator: {
     welcome: 'Welcome',
@@ -16,11 +16,11 @@ const en = {
   },
   steps: {
     welcome: {
-      badge: 'PostalPulse Terminal 1',
-      headingPrefix: 'SHIP IT',
-      headingHighlight: 'SMARTER.',
+      badge: 'MeldPOST Hub Terminal 1',
+      headingPrefix: 'Ship It',
+      headingHighlight: 'Smarter.',
       description: 'Automated sensing, CASS validation, and instant postage for a seamless shipping experience.',
-      startShipment: 'START SHIPMENT'
+      startShipment: 'Start Shipment'
     },
     detection: {
       idle: {
@@ -33,9 +33,9 @@ const en = {
       },
       failureTitle: 'Detection Failed',
       failureDescription: 'Please align your parcel with the markings on the scale surface.',
-      restartScan: 'RESTART SCAN',
-      tempProceed: 'TEMP PROCEED',
-      mappingSuffix: 'MAPPING',
+      restartScan: 'Restart Scan',
+      tempProceed: 'Temp Proceed',
+      mappingSuffix: 'Mapping',
       debugTrigger: 'Debug: Trigger Visibility Error',
       cameraFeedAlt: 'RealSense camera feed'
     },
@@ -124,7 +124,7 @@ const en = {
       deauthorizeTransaction: 'De-authorize Transaction'
     },
     success: {
-      title: 'TRANSACTION SECURED',
+      title: 'Transaction Complete',
       subtitle: 'Protocol finalized effectively.',
       phyOutputReady: 'PHY-OUTPUT READY',
       retrieveTag: 'Retrieve Tag',
@@ -137,6 +137,7 @@ const en = {
         'Transmit a copy of this official record to your personal digital repository.',
       dispatchViaEmail: 'Dispatch via Email',
       dynamicQrScan: 'Dynamic QR Scan',
+      printLabel: 'Print Label',
       terminateSession: 'TERMINATE SESSION'
     }
   }

@@ -235,12 +235,12 @@ const DetectionStep = ({ onSuccess }: DetectionStepProps): React.JSX.Element => 
     >
       <div className="text-center space-y-3">
         <h2
-          className={`kiosk-title text-4xl font-black italic uppercase tracking-tighter ${detectionError ? 'text-[#E71921]' : 'text-[#003366]'}`}
+          className={`kiosk-title text-4xl font-black tracking-tighter ${detectionError ? 'text-(--pp-brand-accent)' : 'text-(--pp-brand-primary)'} font-varela-round`}
         >
           {copy.title}
         </h2>
-        <div className="h-1.5 w-24 bg-[#E71921] mx-auto rounded-full" />
-        <p className="kiosk-subtext text-slate-500 font-bold text-sm uppercase tracking-widest max-w-md">
+        <div className="h-1.5 w-24 bg-(--pp-brand-accent) mx-auto rounded-full" />
+        <p className="kiosk-subtext text-slate-500 font-bold text-sm tracking-widest max-w-md">
           {copy.description}
         </p>
       </div>
@@ -249,7 +249,7 @@ const DetectionStep = ({ onSuccess }: DetectionStepProps): React.JSX.Element => 
         <div
           className={`detection-frame w-100 h-120 rounded-[40px] overflow-hidden border-12 transition-all duration-500 relative shadow-2xl ${
             detectionError
-              ? 'border-red-500 bg-red-50 scale-105'
+              ? 'border-[#eb407a] bg-red-50 scale-105'
               : 'border-white bg-slate-100 shadow-blue-900/10'
           }`}
         >
@@ -259,40 +259,41 @@ const DetectionStep = ({ onSuccess }: DetectionStepProps): React.JSX.Element => 
                 <motion.div
                   animate={{ y: [0, -10, 0] }}
                   transition={{ repeat: Infinity, duration: 1.5 }}
-                  className="w-20 h-20 bg-red-100 text-[#E71921] rounded-full flex items-center justify-center mx-auto"
+                  className="w-20 h-20 bg-red-100 text-(--pp-brand-accent) rounded-full flex items-center justify-center mx-auto"
                 >
                   <Move className="w-12 h-12" />
                 </motion.div>
                 <div className="space-y-2">
-                  <p className="text-lg font-black text-[#003366] uppercase italic tracking-tighter">
+                  <p className="text-2xl font-black text-(--pp-brand-primary) tracking-tighter font-varela-round">
                     {en.steps.detection.failureTitle}
                   </p>
-                  <p className="text-sm font-bold text-slate-500 italic">
+                  <p className="text-sm font-bold text-slate-500">
                     {en.steps.detection.failureDescription}
                   </p>
                 </div>
                 <KioskButton
                   onClick={resetDetection}
-                  className="bg-[#003366] text-white px-8 py-4 rounded-xl font-black uppercase text-base shadow-lg hover:bg-black transition-all"
+                  className="bg-(--pp-brand-primary) text-white px-8 py-4 rounded-xl font-black text-base shadow-lg hover:bg-(--pp-black) transition-all font-varela-round uppercase"
                 >
                   {en.steps.detection.restartScan}
                 </KioskButton>
                 <KioskButton
                   onClick={proceedWithSampleParcel}
-                  className="bg-[#E71921] text-white px-8 py-4 rounded-xl font-black uppercase text-base shadow-lg hover:bg-[#c9151c] transition-all"
+                  className="bg-(--pp-brand-accent) text-white px-8 py-4 rounded-xl font-black text-base shadow-lg hover:bg-(--pp-danger-dark) transition-all font-varela-round uppercase"
                 >
                   {en.steps.detection.tempProceed}
                 </KioskButton>
               </div>
             ) : (
-              <div className="relative w-full h-full bg-[#001122]">
+              <div className="relative w-full h-full bg-(--pp-black)">
                 <img
                   src={unisonAddressURL}
                   alt={en.steps.detection.cameraFeedAlt}
                   className="absolute inset-0 w-full h-full object-cover"
                 />
                 <motion.div
-                  className="absolute top-0 left-0 w-full h-1 bg-[#E71921] shadow-[0_0_20px_#E71921]"
+                  className="absolute top-0 left-0 w-full h-1 bg-(--pp-brand-accent)"
+                  style={{ boxShadow: '0 0 20px var(--pp-brand-accent)' }}
                   animate={{ top: ['0%', '100%', '0%'] }}
                   transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
                 />
@@ -301,7 +302,7 @@ const DetectionStep = ({ onSuccess }: DetectionStepProps): React.JSX.Element => 
           </div>
         </div>
         {!detectionError && (
-          <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 bg-[#003366] px-5 py-3 rounded-2xl shadow-xl border-4 border-white flex items-center gap-4">
+          <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 bg-(--pp-brand-primary) px-5 py-3 rounded-2xl shadow-xl border-4 border-white flex items-center gap-4 font-varela-round">
             <span className="text-base font-black text-white uppercase tracking-widest">
               {detectionProgress}% {en.steps.detection.mappingSuffix}
             </span>

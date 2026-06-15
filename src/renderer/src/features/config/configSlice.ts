@@ -12,6 +12,19 @@ export interface ConfigState {
   unit: 'lb' | 'kg'
   /** Google Maps API key for Places Autocomplete & Address Validation */
   googleMapsApiKey: string
+  /** App header title */
+  headerTitle: string
+  /** Exported app color tokens */
+  colors: {
+    brandPrimary: string
+    brandPrimaryDark: string
+    brandAccent: string
+    background: string
+    black: string
+    white: string
+    dangerDark: string
+    keyboard: string
+  }
 }
 
 const initialState: ConfigState = defaultConfig as ConfigState
@@ -37,6 +50,9 @@ const configSlice = createSlice({
     },
     setGoogleMapsApiKey(state, action: PayloadAction<string>) {
       state.googleMapsApiKey = action.payload
+    },
+    setHeaderTitle(state, action: PayloadAction<string>) {
+      state.headerTitle = action.payload
     }
   }
 })
@@ -47,7 +63,8 @@ export const {
   setRealSenseAddressURL,
   setCasPD2AddressURL,
   setUnit,
-  setGoogleMapsApiKey
+  setGoogleMapsApiKey,
+  setHeaderTitle
 } = configSlice.actions
 
 export default configSlice.reducer

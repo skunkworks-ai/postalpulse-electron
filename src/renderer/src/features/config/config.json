@@ -3,5 +3,16 @@
   "realSenseAddressURL": "ws://localhost:9001",
   "casPD2AddressURL": "http://localhost:3030",
   "unit": "kg",
-  "googleMapsApiKey": ""
+  "googleMapsApiKey": "",
+  "headerTitle": "MeldPOST",
+  "colors": {
+    "brandPrimary": "#1565BF",
+    "brandPrimaryDark": "#003c8e",
+    "brandAccent": "#eb407a",
+    "background": "#F8FAFC",
+    "black": "#001122",
+    "white": "#FFFFFF",
+    "dangerDark": "#b3004e",
+    "keyboard": "#333333"
+  }
 }

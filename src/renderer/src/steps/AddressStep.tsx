@@ -281,7 +281,7 @@ const AddressStep = ({
       <div className="kiosk-card bg-white w-full max-w-2xl rounded-4xl shadow-2xl shadow-slate-200/50 border border-slate-200 relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-1 bg-slate-100">
           <motion.div
-            className="h-full bg-[#003366]"
+            className="h-full bg-(--pp-brand-primary)"
             animate={{ width: isSender ? '50%' : '100%' }}
             transition={{ duration: 0.6, ease: 'circOut' }}
           />
@@ -291,12 +291,12 @@ const AddressStep = ({
         <div className="flex items-center justify-between mb-12">
           <div className="flex items-center gap-5">
             <div
-              className={`w-14 h-14 ${isSender ? 'bg-[#003366] shadow-blue-900/20' : 'bg-[#E71921] shadow-red-900/20'} text-white rounded-2xl flex items-center justify-center shadow-xl transition-all duration-500`}
+              className={`w-14 h-14 ${isSender ? 'bg-(--pp-brand-primary) shadow-blue-900/20' : 'bg-(--pp-brand-accent) shadow-red-900/20'} text-white rounded-2xl flex items-center justify-center shadow-xl transition-all duration-500`}
             >
               {isSender ? <User size={26} /> : <Truck size={26} />}
             </div>
             <div>
-              <h3 className="text-2xl font-black text-[#003366] italic tracking-tighter uppercase">
+              <h3 className="text-2xl font-black text-(--pp-brand-primary) tracking-tighter font-varela-round">
                 {copy.title}
               </h3>
               <p className="text-slate-400 font-bold text-[10px] uppercase tracking-[0.2em] mt-1">
@@ -452,7 +452,7 @@ const AddressStep = ({
                     if (cass) setCurrent((prev) => ({ ...prev, ...cass }))
                   }}
                   disabled={isValidating || !current.street || !current.city || !current.state}
-                  className="w-full py-4 rounded-xl font-black uppercase text-sm tracking-widest border border-[#003366] text-[#003366] hover:bg-[#003366] hover:text-white disabled:opacity-30 transition-all cursor-pointer"
+                  className="w-full py-4 rounded-xl font-black uppercase text-sm tracking-widest border border-(--pp-brand-primary) text-(--pp-brand-primary) hover:bg-(--pp-brand-primary) hover:text-white disabled:opacity-30 transition-all cursor-pointer font-varela-round"
                 >
                   {isValidating ? copy.validating : copy.validate}
                 </KioskButton>
@@ -503,14 +503,14 @@ const AddressStep = ({
         <div className="mt-12 flex gap-4">
           <KioskButton
             onClick={onBack}
-            className="flex-1 bg-white text-slate-500 py-5 rounded-xl font-bold uppercase text-sm tracking-widest flex items-center justify-center gap-2 border border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer"
+            className="flex-1 bg-white text-slate-500 py-5 rounded-xl font-bold uppercase text-sm tracking-widest flex items-center justify-center gap-2 border border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer font-varela-round"
           >
             {copy.back}
           </KioskButton>
           <KioskButton
             onClick={onNext}
             disabled={isNameEmpty || isAddressEmpty}
-            className="flex-2 bg-[#003366] hover:bg-black disabled:opacity-30 text-white py-5 rounded-xl font-black uppercase text-sm tracking-widest shadow-xl flex items-center justify-center gap-3 transition-all cursor-pointer"
+            className="flex-2 bg-(--pp-brand-primary) hover:bg-(--pp-black) disabled:opacity-30 text-white py-5 rounded-xl font-black uppercase text-sm tracking-widest shadow-xl flex items-center justify-center gap-3 transition-all cursor-pointer font-varela-round"
           >
             {copy.next}{' '}
             <ChevronRight size={16} />
