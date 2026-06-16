@@ -25,6 +25,7 @@ const VerifyStep = ({
   onEditRecipient
 }: VerifyStepProps): React.JSX.Element => {
   const copy = en.steps.verify
+  const isProceedDisabled = !sender.isValidated || !recipient.isValidated
 
   return (
     <motion.div
@@ -153,7 +154,11 @@ const VerifyStep = ({
 
         <div className="mt-10 flex flex-col gap-4">
           <KioskButton
-            onClick={onNext}
+            onClick={() => {
+              if (isProceedDisabled) return
+              onNext()
+            }}
+            disabled={isProceedDisabled}
             className="bg-(--pp-brand-accent) hover:bg-(--pp-black) text-white py-8 rounded-xl font-black uppercase text-2xl tracking-widest shadow-2xl shadow-blue-900/20 flex items-center justify-center gap-3 transition-all cursor-pointer font-varela-round"
           >
             {copy.executeTransaction} <ChevronRight size={18} strokeWidth={3} />

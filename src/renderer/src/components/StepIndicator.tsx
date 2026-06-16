@@ -49,7 +49,7 @@ const StepIndicator = ({ currentStep }: StepIndicatorProps): React.JSX.Element =
                   isActive
                     ? 'bg-(--pp-brand-primary) shadow-lg'
                     : isCompleted
-                      ? 'bg-green-500'
+                      ? 'bg-(--pp-brand-accent)'
                       : isUpcoming
                         ? 'bg-slate-200'
                         : 'bg-slate-300'
@@ -65,7 +65,7 @@ const StepIndicator = ({ currentStep }: StepIndicatorProps): React.JSX.Element =
               {index < STEP_ORDER.length - 1 && (
                 <div
                   className={`w-7 sm:w-10 h-1 ml-2 rounded-full ${
-                    isCompleted ? 'bg-green-500' : 'bg-slate-300'
+                    isCompleted ? 'bg-(--pp-brand-accent)' : 'bg-slate-300'
                   }`}
                 ></div>
               )}

@@ -43,7 +43,7 @@ const SuccessStep = ({ onReset }: SuccessStepProps): React.JSX.Element => {
           initial={{ opacity: 0, scale: 0.5 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ type: 'spring', damping: 12 }}
-          className="w-24 h-24 bg-emerald-500 text-white rounded-[28px] flex items-center justify-center mx-auto shadow-2xl shadow-emerald-500/20 border-4 border-white"
+          className="w-24 h-24 bg-emerald-400 text-white rounded-[28px] flex items-center justify-center mx-auto shadow-2xl shadow-(--pp-brand-accent)/20 border-4 border-white"
         >
           <CheckCircle2 size={48} strokeWidth={2.5} />
         </motion.div>

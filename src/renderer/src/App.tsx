@@ -13,7 +13,7 @@ import AddressStep from './steps/AddressStep'
 import VerifyStep from './steps/VerifyStep'
 import PaymentStep from './steps/PaymentStep'
 import SuccessStep from './steps/SuccessStep'
-import { STEPS, IDLE_TIMEOUT_SEC, COUNTDOWN_SEC } from './constants'
+import { STEPS, IDLE_TIMEOUT_SEC, COUNTDOWN_SEC, USER_ACTIVITY_EVENT } from './constants'
 import type { RootState } from './store'
 import { logSession } from './utils/transactionLogger'
 import type { AddressRecord, ParcelData } from './types'
@@ -46,6 +46,8 @@ const App = (): React.JSX.Element => {
   const [showTimeoutModal, setShowTimeoutModal] = useState(false)
   const [countdown, setCountdown] = useState(COUNTDOWN_SEC)
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const idleRemainingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const idleDeadlineRef = useRef<number | null>(null)
   const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   // Sender State
@@ -93,10 +95,30 @@ const App = (): React.JSX.Element => {
 
   const startIdleTimer = (): void => {
     if (idleTimerRef.current) clearTimeout(idleTimerRef.current)
+    if (idleRemainingIntervalRef.current) clearInterval(idleRemainingIntervalRef.current)
+    idleDeadlineRef.current = null
+
     if (IDLE_TIMEOUT_SEC === 0) return
     if (currentStep === STEPS.WELCOME || currentStep === STEPS.SUCCESS) return
 
+    idleDeadlineRef.current = Date.now() + IDLE_TIMEOUT_SEC * 1000
+    console.log(`[Idle Timer] ${IDLE_TIMEOUT_SEC}s remaining`)
+
+    idleRemainingIntervalRef.current = setInterval(() => {
+      if (!idleDeadlineRef.current) return
+      const remainingSec = Math.max(0, Math.ceil((idleDeadlineRef.current - Date.now()) / 1000))
+      console.log(`[Idle Timer] ${remainingSec}s remaining`)
+      if (remainingSec <= 0 && idleRemainingIntervalRef.current) {
+        clearInterval(idleRemainingIntervalRef.current)
+        idleRemainingIntervalRef.current = null
+      }
+    }, 1000)
+
     idleTimerRef.current = setTimeout(() => {
+      if (idleRemainingIntervalRef.current) {
+        clearInterval(idleRemainingIntervalRef.current)
+        idleRemainingIntervalRef.current = null
+      }
       setShowTimeoutModal(true)
       setCountdown(COUNTDOWN_SEC)
     }, IDLE_TIMEOUT_SEC * 1000)
@@ -106,11 +128,30 @@ const App = (): React.JSX.Element => {
     startIdleTimer()
     return () => {
       if (idleTimerRef.current) clearTimeout(idleTimerRef.current)
+      if (idleRemainingIntervalRef.current) clearInterval(idleRemainingIntervalRef.current)
     }
   }, [currentStep])
 
   useEffect(() => {
+    const resetIdleFromActivity = (): void => {
+      if (showTimeoutModal) return
+      startIdleTimer()
+    }
+
+    window.addEventListener(USER_ACTIVITY_EVENT, resetIdleFromActivity)
+    document.addEventListener('keydown', resetIdleFromActivity, true)
+    document.addEventListener('input', resetIdleFromActivity, true)
+
+    return () => {
+      window.removeEventListener(USER_ACTIVITY_EVENT, resetIdleFromActivity)
+      document.removeEventListener('keydown', resetIdleFromActivity, true)
+      document.removeEventListener('input', resetIdleFromActivity, true)
+    }
+  }, [currentStep, showTimeoutModal])
+
+  useEffect(() => {
     if (showTimeoutModal) {
+      console.log(`[Timeout Countdown] ${COUNTDOWN_SEC}s remaining`)
       countdownIntervalRef.current = setInterval(() => {
         setCountdown((prev) => {
           if (prev <= 1) {
@@ -118,7 +159,9 @@ const App = (): React.JSX.Element => {
             resetApp()
             return 0
           }
-          return prev - 1
+          const next = prev - 1
+          console.log(`[Timeout Countdown] ${next}s remaining`)
+          return next
         })
       }, 1000)
     } else {
@@ -132,6 +175,7 @@ const App = (): React.JSX.Element => {
 
   const stayActive = (): void => {
     setShowTimeoutModal(false)
+    startIdleTimer()
   }
 
   useEffect(() => {
@@ -266,18 +310,18 @@ const App = (): React.JSX.Element => {
             animate={{ opacity: 1, scale: 1 }}
             className="kiosk-card bg-white w-full max-w-md rounded-4xl p-10 shadow-[0_40px_80px_rgba(0,0,0,0.2)] relative z-10 text-center border border-slate-200"
           >
-            <div className="w-24 h-24 bg-red-50 text-(--pp-brand-accent) rounded-3xl flex items-center justify-center mx-auto mb-8 transform rotate-6 border-2 border-red-100 shadow-sm">
-              <Timer size={40} strokeWidth={2.5} />
+            <div className="w-24 h-24  text-(--pp-brand-accent) rounded-3xl flex items-center justify-center mx-auto mb-8 transform ">
+              <Timer size={80} strokeWidth={2.5} />
             </div>
-            <h3 className="kiosk-title text-2xl font-black text-(--pp-brand-primary) italic uppercase tracking-tighter mb-2 leading-none">
-              Session Guard Active
+            <h3 className="kiosk-title text-2xl font-black text-(--pp-brand-primary) tracking-tighter mb-2 leading-none font-varela-round">
+              Your session is about to expire
             </h3>
             <p className="kiosk-subtext text-slate-400 font-bold text-xs uppercase tracking-widest mb-10">
-              Terminal inactivity detected. Auto-purge in:
+              You'll be returned to the welcome screen, tap "Extend Session" to stay active.
             </p>
 
-            <div className="w-24 h-24 rounded-4xl border-4 border-slate-100 bg-slate-50 flex items-center justify-center mx-auto mb-12 shadow-inner">
-              <span className="text-4xl font-black text-(--pp-brand-primary) italic">{countdown}</span>
+            <div className="w-24 h-24 rounded-4xl flex items-center justify-center mx-auto mb-12">
+              <span className="text-8xl font-black text-(--pp-brand-primary) font-varela-round">{countdown}</span>
             </div>
 
             <div className="flex flex-col gap-3">
@@ -291,7 +335,7 @@ const App = (): React.JSX.Element => {
                 onClick={resetApp}
                 className="w-full text-slate-400 font-bold uppercase text-[9px] tracking-[0.2em] hover:text-rose-500 flex items-center justify-center gap-2 py-3 transition-colors cursor-pointer"
               >
-                <X size={14} /> PURGE DATA NOW
+                <X size={14} /> End Session
               </button>
             </div>
           </motion.div>

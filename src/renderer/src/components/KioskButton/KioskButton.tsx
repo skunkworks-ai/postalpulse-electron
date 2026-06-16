@@ -1,5 +1,6 @@
 import React, { useRef } from 'react'
 import tapMP3 from '@renderer/assets/tap.mp3'
+import { USER_ACTIVITY_EVENT } from '@renderer/constants'
 
 interface KioskButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   soundUrl?: string
@@ -25,6 +26,7 @@ const KioskButton: React.FC<KioskButtonProps> = ({
 
   const handlePointerDown = () => {
     if (disabled) return
+    window.dispatchEvent(new Event(USER_ACTIVITY_EVENT))
     playSound()
   }
 

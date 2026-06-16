@@ -11,6 +11,7 @@ import numericSVG from './numeric.svg'
 
 import 'react-simple-keyboard/build/css/index.css'
 import './Keyboard.css'
+import { USER_ACTIVITY_EVENT } from '../../constants'
 
 type LayoutName = 'default' | 'shift' | 'numeric' | 'capslock'
 
@@ -118,6 +119,7 @@ export const KeyboardProvider: React.FC<KeyboardProviderProps> = ({ children }) 
     tapSound.play().catch(() => {
       /* ignore play errors */
     })
+    window.dispatchEvent(new Event(USER_ACTIVITY_EVENT))
 
     const active = document.activeElement as HTMLInputElement | HTMLTextAreaElement | null
     if (!active) return

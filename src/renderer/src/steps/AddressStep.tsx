@@ -70,6 +70,7 @@ const AddressStep = ({
   const copy = isSender ? en.steps.address.sender : en.steps.address.recipient
   const isNameEmpty = !current.name.trim()
   const isAddressEmpty = !current.street.trim()
+  const isProceedDisabled = isNameEmpty || isAddressEmpty || !current.isValidated || isValidating
 
   const handleAddressSearch = (value: string): void => {
     setAddressSearch(value)
@@ -508,8 +509,11 @@ const AddressStep = ({
             {copy.back}
           </KioskButton>
           <KioskButton
-            onClick={onNext}
-            disabled={isNameEmpty || isAddressEmpty}
+            onClick={() => {
+              if (isProceedDisabled) return
+              onNext()
+            }}
+            disabled={isProceedDisabled}
             className="flex-2 bg-(--pp-brand-primary) hover:bg-(--pp-black) disabled:opacity-30 text-white py-5 rounded-xl font-black uppercase text-sm tracking-widest shadow-xl flex items-center justify-center gap-3 transition-all cursor-pointer font-varela-round"
           >
             {copy.next}{' '}
