@@ -16,7 +16,7 @@ const en = {
   },
   steps: {
     welcome: {
-      badge: 'MeldPOST Hub Terminal 1',
+      badge: 'MeldPOST Hub Booking Terminal 1',
       headingPrefix: 'Ship It',
       headingHighlight: 'Smarter.',
       description: 'Automated sensing, CASS validation, and instant postage for a seamless shipping experience.',

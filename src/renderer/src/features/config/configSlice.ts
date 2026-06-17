@@ -19,6 +19,7 @@ export interface ConfigState {
     brandPrimary: string
     brandPrimaryDark: string
     brandAccent: string
+    brandAccentDark: string
     background: string
     black: string
     white: string
@@ -33,8 +34,16 @@ const configSlice = createSlice({
   name: 'config',
   initialState,
   reducers: {
-    replaceConfig(_state, action: PayloadAction<ConfigState>) {
-      return action.payload
+    replaceConfig(_state, action: PayloadAction<Partial<ConfigState>>) {
+      const incoming = action.payload ?? {}
+      return {
+        ...initialState,
+        ...incoming,
+        colors: {
+          ...initialState.colors,
+          ...(incoming.colors ?? {})
+        }
+      }
     },
     setUnisonAddressURL(state, action: PayloadAction<string>) {
       state.unisonAddressURL = action.payload

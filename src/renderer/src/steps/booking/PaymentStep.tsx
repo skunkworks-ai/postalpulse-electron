@@ -1,10 +1,10 @@
 import React, { useState } from 'react'
 import { RefreshCcw, CreditCard } from 'lucide-react'
 import { motion } from 'motion/react'
-import PriorityStripes from '../components/PriorityStripes'
-import KioskButton from '../components/KioskButton/KioskButton'
-import type { ParcelData } from '../types'
-import en from '../translations/en'
+import PriorityStripes from '../../components/PriorityStripes'
+import KioskButton from '../../components/KioskButton/KioskButton'
+import type { ParcelData } from '../../types'
+import en from '../../translations/booking.en'
 
 interface PaymentStepProps {
   detectedParcel: ParcelData | null

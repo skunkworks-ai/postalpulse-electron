@@ -6,25 +6,26 @@ import bgImage from './assets/bg.png'
 import ConfigPage from './pages/Config/Config'
 import Header from './components/Header'
 import StepIndicator from './components/StepIndicator'
-import WelcomeStep from './steps/booking/WelcomeStep'
-import DetectionStep from './steps/booking/DetectionStep'
-import ConfirmationStep from './steps/booking/ConfirmationStep'
-import AddressStep from './steps/booking/AddressStep'
-import VerifyStep from './steps/booking/VerifyStep'
-import PaymentStep from './steps/booking/PaymentStep'
-import SuccessStep from './steps/booking/SuccessStep'
-import { STEPS, IDLE_TIMEOUT_SEC, COUNTDOWN_SEC, USER_ACTIVITY_EVENT } from './constants'
+import WelcomeStep from './steps/lodgement/WelcomeStep'
+import DetectionStep from './steps/lodgement/DetectionStep'
+import ConfirmationStep from './steps/lodgement/ConfirmationStep'
+import ScanningStep from './steps/lodgement/ScanningStep'
+import SuccessStep from './steps/lodgement/SuccessStep'
+import { LODGEMENT_STEPS, IDLE_TIMEOUT_SEC, COUNTDOWN_SEC, USER_ACTIVITY_EVENT, BOX_SPECS } from './constants'
 import type { RootState } from './store'
 import { logSession } from './utils/transactionLogger'
 import type { AddressRecord, ParcelData } from './types'
 
-type AppProps = {
-  appName?: string
-}
+const METER_TO_INCH = 39.37007874
+const INCH_TO_METER = 0.0254
 
-const App = ({ appName = 'MeldPOST Booking' }: AppProps): React.JSX.Element => {
+const formatDimensionsInMeters = (length: number, width: number, height: number): string =>
+  `${(length * INCH_TO_METER).toFixed(2)}m x ${(width * INCH_TO_METER).toFixed(2)}m x ${(height * INCH_TO_METER).toFixed(2)}m`
+
+const LodgementApp = (): React.JSX.Element => {
+  const appName = 'MeldPOST Lodgement'
   const themeColors = useSelector((state: RootState) => state.config.colors)
-  const [currentStep, setCurrentStep] = useState(STEPS.WELCOME)
+  const [currentStep, setCurrentStep] = useState(LODGEMENT_STEPS.WELCOME)
   const [detectedParcel, setDetectedParcel] = useState<ParcelData | null>(null)
   const [manualAddressEntry, setManualAddressEntry] = useState(false)
 
@@ -82,19 +83,8 @@ const App = ({ appName = 'MeldPOST Booking' }: AppProps): React.JSX.Element => {
   }
 
   const resetApp = (): void => {
-    // Log transaction if we completed a successful session
-    if (currentStep === STEPS.SUCCESS && sender.name && recipient.name && detectedParcel) {
-      logSession({
-        sender,
-        recipient,
-        parcel: detectedParcel
-      })
-    }
-
-    resetAddresses()
-    setDetectedParcel(null)
     setShowTimeoutModal(false)
-    setCurrentStep(STEPS.WELCOME)
+    setCurrentStep(LODGEMENT_STEPS.WELCOME)
   }
 
   const startIdleTimer = (): void => {
@@ -103,7 +93,7 @@ const App = ({ appName = 'MeldPOST Booking' }: AppProps): React.JSX.Element => {
     idleDeadlineRef.current = null
 
     if (IDLE_TIMEOUT_SEC === 0) return
-    if (currentStep === STEPS.WELCOME || currentStep === STEPS.SUCCESS) return
+    if (currentStep === LODGEMENT_STEPS.WELCOME) return
 
     idleDeadlineRef.current = Date.now() + IDLE_TIMEOUT_SEC * 1000
     console.log(`[Idle Timer] ${IDLE_TIMEOUT_SEC}s remaining`)
@@ -187,6 +177,7 @@ const App = ({ appName = 'MeldPOST Booking' }: AppProps): React.JSX.Element => {
     rootStyle.setProperty('--pp-brand-primary', themeColors.brandPrimary)
     rootStyle.setProperty('--pp-brand-primary-dark', themeColors.brandPrimaryDark)
     rootStyle.setProperty('--pp-brand-accent', themeColors.brandAccent)
+    rootStyle.setProperty('--pp-brand-accent-dark', themeColors.brandAccentDark)
     rootStyle.setProperty('--pp-background', themeColors.background)
     rootStyle.setProperty('--pp-black', themeColors.black)
     rootStyle.setProperty('--pp-white', themeColors.white)
@@ -197,7 +188,7 @@ const App = ({ appName = 'MeldPOST Booking' }: AppProps): React.JSX.Element => {
   return (
     <div className="kiosk-app min-h-screen bg-(--pp-background) text-slate-900 font-sans flex flex-col overflow-hidden select-none">
       <Header onLogoTap={handleLogoTap} />
-      <StepIndicator currentStep={currentStep} />
+      {/* <StepIndicator currentStep={currentStep} /> */}
 
       <main className="kiosk-stage flex-1 flex flex-col relative bg-slate-50/50 overflow-hidden z-10">
         <div id="background-image" className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-center z-0">
@@ -212,94 +203,66 @@ const App = ({ appName = 'MeldPOST Booking' }: AppProps): React.JSX.Element => {
 
         <div id="container" className="z-1 flex-1 flex flex-col">
           <AnimatePresence mode="wait">
-            {currentStep === STEPS.WELCOME && (
-              <WelcomeStep key={STEPS.WELCOME} onStart={() => setCurrentStep(STEPS.DETECTION)} />
+            {currentStep === LODGEMENT_STEPS.WELCOME && (
+              <WelcomeStep key={LODGEMENT_STEPS.WELCOME} onStart={() => setCurrentStep(LODGEMENT_STEPS.DETECTION)} />
             )}
-
-            {currentStep === STEPS.DETECTION && (
+            {currentStep === LODGEMENT_STEPS.DETECTION && (
               <DetectionStep
-                key={STEPS.DETECTION}
-                onSuccess={(parcel) => {
-                  setDetectedParcel(parcel)
-                  setCurrentStep(STEPS.CONFIRMATION)
-                }}
-              />
-            )}
+                key={LODGEMENT_STEPS.DETECTION}
+                onSuccess={() => {
+                  setSender({
+                    name: 'Jane E. Smith',
+                    email: '',
+                    street: '123 Main St',
+                    city: 'Anytown',
+                    state: 'CA',
+                    zip: '12345',
+                    isValidated: true
+                  })
+                  setRecipient({
+                    name: 'John D. Doe',
+                    street: '456 Elm St',
+                    city: 'Othertown',
+                    state: 'NY',
+                    zip: '67890',
+                    isValidated: true
+                  })
 
-            {currentStep === STEPS.CONFIRMATION && (
-              <ConfirmationStep
-                key={STEPS.CONFIRMATION}
-                detectedParcel={detectedParcel}
-                onDiscard={() => {
-                  resetAddresses()
-                  setCurrentStep(STEPS.DETECTION)
-                }}
-                onConfirm={() => setCurrentStep(STEPS.SENDER)}
-              />
-            )}
-
-            {(currentStep === STEPS.SENDER || currentStep === STEPS.RECIPIENT) && (
-              <AddressStep
-                key={currentStep}
-                currentStep={currentStep}
-                sender={sender}
-                setSender={setSender}
-                recipient={recipient}
-                setRecipient={setRecipient}
-                initialManualEntry={manualAddressEntry}
-                onBack={() => {
-                  if (currentStep === STEPS.SENDER) {
-                    setManualAddressEntry(false)
-                    setCurrentStep(STEPS.CONFIRMATION)
-                  } else {
-                    setCurrentStep(STEPS.SENDER)
+                  const sampleSize = BOX_SPECS.MEDIUM
+                  const sampleParcel: ParcelData = {
+                    size: sampleSize.name,
+                    dimensions: `${sampleSize.maxL}" x ${sampleSize.maxW}" x ${sampleSize.maxH}"`,
+                    dimensionsMetric: formatDimensionsInMeters(sampleSize.maxL, sampleSize.maxW, sampleSize.maxH),
+                    actualDimensions: `${sampleSize.maxL}" x ${sampleSize.maxW}" x ${sampleSize.maxH}"`,
+                    actualDimensionsMetric: formatDimensionsInMeters(sampleSize.maxL, sampleSize.maxW, sampleSize.maxH),
+                    weight: 3.5,
+                    price: sampleSize.price
                   }
-                }}
-                onNext={() => {
-                  if (currentStep === STEPS.SENDER) {
-                    setCurrentStep(STEPS.RECIPIENT)
-                  } else {
-                    setManualAddressEntry(false)
-                    setCurrentStep(STEPS.VERIFY)
-                  }
-                }}
-              />
-            )}
 
-            {currentStep === STEPS.VERIFY && (
-              <VerifyStep
-                key={STEPS.VERIFY}
-                sender={sender}
-                recipient={recipient}
-                detectedParcel={detectedParcel}
-                onBack={() => setCurrentStep(STEPS.RECIPIENT)}
-                onNext={() => setCurrentStep(STEPS.PAYMENT)}
-                onEditSender={() => { setManualAddressEntry(true); setCurrentStep(STEPS.SENDER) }}
-                onEditRecipient={() => { setManualAddressEntry(true); setCurrentStep(STEPS.RECIPIENT) }}
-              />
+                  setDetectedParcel(sampleParcel);
+                  setCurrentStep(LODGEMENT_STEPS.CONFIRMATION)
+                }} />
             )}
-
-            {currentStep === STEPS.PAYMENT && (
-              <PaymentStep
-                key={STEPS.PAYMENT}
-                detectedParcel={detectedParcel}
-                onSuccess={() => setCurrentStep(STEPS.SUCCESS)}
-                onBack={() => setCurrentStep(STEPS.VERIFY)}
-              />
+            {currentStep === LODGEMENT_STEPS.CONFIRMATION && (
+              <ConfirmationStep key={LODGEMENT_STEPS.CONFIRMATION} onConfirm={() => setCurrentStep(LODGEMENT_STEPS.SCANNING)} onDiscard={() => setCurrentStep(LODGEMENT_STEPS.WELCOME)} detectedParcel={detectedParcel} sender={sender} recipient={recipient} />
             )}
-
-            {currentStep === STEPS.SUCCESS && (
-              <SuccessStep key={STEPS.SUCCESS} onReset={resetApp} />
+            {currentStep === LODGEMENT_STEPS.SCANNING && (
+              <ScanningStep
+                key={LODGEMENT_STEPS.SCANNING}
+                onSuccess={() => {
+                  setCurrentStep(LODGEMENT_STEPS.SUCCESS)
+                }} />
             )}
+            {currentStep === LODGEMENT_STEPS.SUCCESS && (
+              <SuccessStep key={LODGEMENT_STEPS.SUCCESS} onReset={() => setCurrentStep(LODGEMENT_STEPS.WELCOME)} />
+            )}
+            
           </AnimatePresence>
         </div>
-
       </main>
 
       {/* --- Config Page (hidden: tap logo 5×) --- */}
-      <AnimatePresence>
-        {showConfig && <ConfigPage onClose={() => setShowConfig(false)} />}
-      </AnimatePresence>
+      <AnimatePresence>{showConfig && <ConfigPage onClose={() => setShowConfig(false)} />}</AnimatePresence>
 
       {/* --- Timeout Modal --- */}
       {showTimeoutModal && (
@@ -346,7 +309,6 @@ const App = ({ appName = 'MeldPOST Booking' }: AppProps): React.JSX.Element => {
         </div>
       )}
 
-
       <footer className="bg-white py-5 px-10 border-t border-slate-100 flex justify-between items-center text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] z-1">
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2">
@@ -365,4 +327,4 @@ const App = ({ appName = 'MeldPOST Booking' }: AppProps): React.JSX.Element => {
   )
 }
 
-export default App
+export default LodgementApp

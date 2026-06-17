@@ -3,12 +3,12 @@ import { createPortal } from 'react-dom'
 import { useSelector } from 'react-redux'
 import { ChevronRight, Search, MapPin, Edit2, User, Truck, CheckCircle2, AlertCircle } from 'lucide-react'
 import { motion } from 'motion/react'
-import ControlledInput from '../contexts/KeyboardProvider/ControlledInput'
-import KioskButton from '../components/KioskButton/KioskButton'
-import { STEPS, MOCK_ADDRESSES, MOCK_GOOGLE_MAPS } from '../constants'
-import type { AddressRecord, AddressSuggestion } from '../types'
-import type { RootState } from '../store'
-import en from '../translations/en'
+import ControlledInput from '../../contexts/KeyboardProvider/ControlledInput'
+import KioskButton from '../../components/KioskButton/KioskButton'
+import { STEPS, MOCK_ADDRESSES, MOCK_GOOGLE_MAPS } from '../../constants'
+import type { AddressRecord, AddressSuggestion } from '../../types'
+import type { RootState } from '../../store'
+import en from '../../translations/booking.en'
 
 interface AddressStepProps {
   currentStep: string

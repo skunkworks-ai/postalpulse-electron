@@ -1,20 +1,24 @@
 import React from 'react'
-import { ChevronRight, Scan, Weight, Maximize } from 'lucide-react'
+import { ChevronRight, Scan, Weight, Maximize, User, Truck } from 'lucide-react'
 import { motion } from 'motion/react'
-import type { ParcelData } from '../types'
-import KioskButton from '../components/KioskButton/KioskButton'
-import en from '../translations/en'
+import type { AddressRecord, ParcelData } from '../../types'
+import KioskButton from '../../components/KioskButton/KioskButton'
+import en from '../../translations/lodgement.en'
 
 const POUNDS_TO_KILOGRAMS = 0.45359237
 
 interface ConfirmationStepProps {
-  detectedParcel: ParcelData | null
+  detectedParcel: ParcelData | null,
+  sender: AddressRecord | null,
+  recipient: AddressRecord | null,
   onDiscard: () => void
   onConfirm: () => void
 }
 
 const ConfirmationStep = ({
   detectedParcel,
+  sender,
+  recipient,
   onDiscard,
   onConfirm
 }: ConfirmationStepProps): React.JSX.Element => {
@@ -37,6 +41,44 @@ const ConfirmationStep = ({
         </h3>
 
         <div className="space-y-4">
+
+          <div className="p-6 bg-slate-50/50 rounded-3xl border border-slate-100 flex items-center justify-between transition-colors hover:bg-slate-50">
+            <div className="flex items-center gap-5">
+              <div className="w-14 h-14 bg-white shadow-sm border border-slate-200 rounded-2xl flex items-center justify-center text-sky-600">
+                <User size={26} />
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+                  {copy.senderLabel}
+                </p>
+                <p className="text-lg font-black text-(--pp-brand-primary)">
+                  {sender?.name || 'N/A'}
+                </p>
+                <p className="mt-1 text-[11px] font-bold text-slate-400 tracking-[0.16em]">
+                  {sender?.street || 'N/A'}, {sender?.city || 'N/A'}, {sender?.state || 'N/A'} {sender?.zip || 'N/A'}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-6 bg-slate-50/50 rounded-3xl border border-slate-100 flex items-center justify-between transition-colors hover:bg-slate-50">
+            <div className="flex items-center gap-5">
+              <div className="w-14 h-14 bg-white shadow-sm border border-slate-200 rounded-2xl flex items-center justify-center text-sky-600">
+                <Truck size={26} />
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+                  {copy.recipientLabel}
+                </p>
+                <p className="text-lg font-black text-(--pp-brand-primary)">
+                  {recipient?.name || 'N/A'}
+                </p>
+                <p className="mt-1 text-[11px] font-bold text-slate-400 tracking-[0.16em]">
+                  {recipient?.street || 'N/A'}, {recipient?.city || 'N/A'}, {recipient?.state || 'N/A'} {recipient?.zip || 'N/A'}
+                </p>
+              </div>
+            </div>
+          </div>
 
           <div className="p-6 bg-slate-50/50 rounded-3xl border border-slate-100 flex items-center justify-between transition-colors hover:bg-slate-50">
             <div className="flex items-center gap-5">
@@ -71,7 +113,7 @@ const ConfirmationStep = ({
             </div>
           </div>
 
-          <div className="p-6 bg-slate-50/50 rounded-3xl border border-slate-100 flex items-center justify-between transition-colors hover:bg-slate-50">
+          {/* <div className="p-6 bg-slate-50/50 rounded-3xl border border-slate-100 flex items-center justify-between transition-colors hover:bg-slate-50">
             <div className="flex items-center gap-5">
               <div className="w-14 h-14 bg-white shadow-sm border border-slate-200 rounded-2xl flex items-center justify-center text-(--pp-brand-accent)">
                 <Maximize size={26} />
@@ -88,7 +130,7 @@ const ConfirmationStep = ({
                 </p>
               </div>
             </div>
-          </div>
+          </div> */}
 
           <div className="p-6 bg-slate-50/50 rounded-3xl border border-slate-100 flex items-center justify-between transition-colors hover:bg-slate-50">
             <div className="flex items-center gap-5">
@@ -109,7 +151,7 @@ const ConfirmationStep = ({
             </div>
           </div>
 
-          <div className="pt-10 flex justify-between items-end border-b border-slate-100 pb-8 mt-4">
+          {/* <div className="pt-10 flex justify-between items-end border-b border-slate-100 pb-8 mt-4">
             <div className="bg-emerald-50 text-emerald-600 px-4 py-1.5 rounded-lg text-[10px] font-black border border-emerald-100 uppercase">
               {copy.rateConfirmed}
             </div>
@@ -121,18 +163,18 @@ const ConfirmationStep = ({
                 ${detectedParcel?.price.toFixed(2)}
               </p>
             </div>
-          </div>
+          </div> */}
 
           <div className="grid grid-cols-1 gap-4 mt-6">
             <KioskButton
               onClick={onConfirm}
-              className="bg-(--pp-brand-primary) text-white py-5 rounded-xl font-black uppercase text-sm tracking-widest shadow-xl shadow-blue-900/10 flex items-center justify-center gap-2 hover:bg-(--pp-brand-primary-dark) transition-all cursor-pointer font-varela-round"
+              className="bg-(--pp-brand-accent) text-black py-5 rounded-xl font-black uppercase text-sm tracking-widest shadow-xl shadow-blue-900/10 flex items-center justify-center gap-2 hover:bg-(--pp-brand-accent-dark) transition-all cursor-pointer font-varela-round"
             >
               {copy.setDestination} <ChevronRight size={16} strokeWidth={3} />
             </KioskButton>
             <KioskButton
               onClick={onDiscard}
-              className="bg-white text-slate-600 py-5 rounded-xl font-black uppercase text-sm tracking-widest border-2 border-slate-200 hover:border-(--pp-brand-accent) hover:text-(--pp-brand-accent) transition-all cursor-pointer font-varela-round"
+              className="bg-white text-slate-600 py-5 rounded-xl font-black uppercase text-sm tracking-widest border-2 border-slate-200 hover:border-(--pp-brand-primary) hover:text-(--pp-brand-primary) transition-all cursor-pointer font-varela-round"
             >
               {copy.discard}
             </KioskButton>

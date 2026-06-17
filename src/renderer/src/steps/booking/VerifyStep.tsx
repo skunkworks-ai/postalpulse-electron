@@ -1,9 +1,9 @@
 import React from 'react'
 import { ChevronRight, CreditCard, Truck, ShieldCheck, FileText, User } from 'lucide-react'
 import { motion } from 'motion/react'
-import type { AddressRecord, ParcelData } from '../types'
-import KioskButton from '../components/KioskButton/KioskButton'
-import en from '../translations/en'
+import type { AddressRecord, ParcelData } from '../../types'
+import KioskButton from '../../components/KioskButton/KioskButton'
+import en from '../../translations/booking.en'
 
 interface VerifyStepProps {
   sender: AddressRecord

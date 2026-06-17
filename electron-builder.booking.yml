@@ -1,5 +1,8 @@
 appId: com.meldcx.booking
-productName: Booking
+productName: MeldPOST Booking
+extraMetadata:
+  name: meldpost-booking
+  productName: MeldPOST Booking
 directories:
   buildResources: build
 files:
@@ -12,7 +15,7 @@ files:
 asarUnpack:
   - resources/**
 win:
-  executableName: Booking
+  executableName: MeldPOST Booking
   icon: icon.ico
   target:
     - target: nsis
@@ -21,7 +24,7 @@ win:
         - arm64
   signAndEditExecutable: true
 nsis:
-  artifactName: booking-${version}-${arch}-setup.${ext}
+  artifactName: MeldPOSTBooking-${version}-${arch}-setup.${ext}
   installerIcon: icon.ico
   installerHeaderIcon: icon.ico
   uninstallerIcon: icon.ico
@@ -38,7 +41,7 @@ mac:
     - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
   notarize: false
 dmg:
-  artifactName: booking-${version}.${ext}
+  artifactName: MeldPOSTBooking-${version}.${ext}
 linux:
   icon: build/icon.png
   target:
@@ -48,7 +51,7 @@ linux:
   maintainer: meldcx.com
   category: Utility
 appImage:
-  artifactName: booking-${version}.${ext}
+  artifactName: MeldPOSTBooking-${version}.${ext}
 npmRebuild: false
 publish:
   provider: generic

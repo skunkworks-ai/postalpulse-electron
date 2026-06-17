@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
 import { motion } from 'motion/react'
 import { Move } from 'lucide-react'
-import { BOX_SPECS, getFittingBox, kilogramsToPounds } from '../constants'
-import type { ParcelData } from '../types'
-import type { RootState } from '../store'
-import KioskButton from '../components/KioskButton/KioskButton'
-import en from '../translations/en'
+import { BOX_SPECS, getFittingBox, kilogramsToPounds } from '../../constants'
+import type { ParcelData } from '../../types'
+import type { RootState } from '../../store'
+import KioskButton from '../../components/KioskButton/KioskButton'
+import en from '../../translations/booking.en'
 
 interface DetectionStepProps {
   onSuccess: (parcel: ParcelData) => void

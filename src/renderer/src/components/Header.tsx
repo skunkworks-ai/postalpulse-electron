@@ -1,8 +1,7 @@
 import React from 'react'
 import { useSelector } from 'react-redux'
 import PriorityStripes from './PriorityStripes'
-import en from '../translations/en'
-// import postalPulseIcon from '../assets/postalpulse-icon.png'
+import en from '../translations/booking.en'
 import meldCXSquare from '../assets/meldCX_square.png'
 import type { RootState } from '../store'
 
@@ -21,7 +20,7 @@ const Header = ({ onLogoTap }: { onLogoTap?: () => void }): React.JSX.Element =>
             className="w-14 h-14 bg-(--pp-white) rounded-xl flex items-center justify-center overflow-hidden shadow-lg shadow-blue-900/20 cursor-pointer select-none"
             onClick={onLogoTap}
           >
-            <img src={meldCXSquare} alt="PostalPulse logo" className="w-11 h-11" draggable={false} />
+            <img src={meldCXSquare} alt="MeldCX logo" className="w-11 h-11" draggable={false} />
           </div>
           <div>
             <h1 className="text-3xl font-bold text-(--pp-brand-primary) leading-none tracking-tighter font-varela-round">

@@ -11,7 +11,33 @@ type ConfigState = Record<string, unknown>
 // Load default config values from shared config.json
 import configDefaults from '../../src/renderer/src/features/config/config.json'
 
-const configStore: any = new Store({ name: 'postalpulse-config', defaults: configDefaults })
+const getAppVariant = (): 'booking' | 'lodgement' => {
+  const envVariant = (process.env.APP_VARIANT ?? '').toLowerCase()
+  if (envVariant === 'lodgement') return 'lodgement'
+  if (envVariant === 'booking') return 'booking'
+
+  const appName = app.getName().toLowerCase()
+  return appName.includes('lodgement') ? 'lodgement' : 'booking'
+}
+
+const appVariant = getAppVariant()
+
+if (appVariant === 'lodgement') {
+  app.setName('MeldPOST Lodgement')
+} else {
+  app.setName('MeldPOST Booking')
+}
+
+const getAppUserModelId = (): string => {
+  return appVariant === 'lodgement' ? 'com.meldcx.lodgement' : 'com.meldcx.booking'
+}
+
+const configStore: any = new Store({
+  name: `${appVariant}-config`,
+  defaults: configDefaults
+})
+
+const rendererEntryFile = appVariant === 'lodgement' ? 'index.lodgement.html' : 'index.booking.html'
 
 function createWindow(): void {
   // Create the browser window.
@@ -45,9 +71,9 @@ function createWindow(): void {
   // HMR for renderer base on electron-vite cli.
   // Load the remote URL for development or the local html file for production.
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
+    mainWindow.loadURL(`${process.env['ELECTRON_RENDERER_URL']}/${rendererEntryFile}`)
   } else {
-    mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+    mainWindow.loadFile(join(__dirname, `../renderer/${rendererEntryFile}`))
   }
 }
 
@@ -56,7 +82,7 @@ function createWindow(): void {
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
   // Set app user model id for windows
-  electronApp.setAppUserModelId('com.postalpulse.express')
+  electronApp.setAppUserModelId(getAppUserModelId())
 
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.

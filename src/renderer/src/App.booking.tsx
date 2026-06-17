@@ -18,11 +18,8 @@ import type { RootState } from './store'
 import { logSession } from './utils/transactionLogger'
 import type { AddressRecord, ParcelData } from './types'
 
-type AppProps = {
-  appName?: string
-}
-
-const App = ({ appName = 'MeldPOST Booking' }: AppProps): React.JSX.Element => {
+const BookingApp = (): React.JSX.Element => {
+  const appName = 'MeldPOST Booking'
   const themeColors = useSelector((state: RootState) => state.config.colors)
   const [currentStep, setCurrentStep] = useState(STEPS.WELCOME)
   const [detectedParcel, setDetectedParcel] = useState<ParcelData | null>(null)
@@ -274,8 +271,14 @@ const App = ({ appName = 'MeldPOST Booking' }: AppProps): React.JSX.Element => {
                 detectedParcel={detectedParcel}
                 onBack={() => setCurrentStep(STEPS.RECIPIENT)}
                 onNext={() => setCurrentStep(STEPS.PAYMENT)}
-                onEditSender={() => { setManualAddressEntry(true); setCurrentStep(STEPS.SENDER) }}
-                onEditRecipient={() => { setManualAddressEntry(true); setCurrentStep(STEPS.RECIPIENT) }}
+                onEditSender={() => {
+                  setManualAddressEntry(true)
+                  setCurrentStep(STEPS.SENDER)
+                }}
+                onEditRecipient={() => {
+                  setManualAddressEntry(true)
+                  setCurrentStep(STEPS.RECIPIENT)
+                }}
               />
             )}
 
@@ -288,18 +291,13 @@ const App = ({ appName = 'MeldPOST Booking' }: AppProps): React.JSX.Element => {
               />
             )}
 
-            {currentStep === STEPS.SUCCESS && (
-              <SuccessStep key={STEPS.SUCCESS} onReset={resetApp} />
-            )}
+            {currentStep === STEPS.SUCCESS && <SuccessStep key={STEPS.SUCCESS} onReset={resetApp} />}
           </AnimatePresence>
         </div>
-
       </main>
 
       {/* --- Config Page (hidden: tap logo 5×) --- */}
-      <AnimatePresence>
-        {showConfig && <ConfigPage onClose={() => setShowConfig(false)} />}
-      </AnimatePresence>
+      <AnimatePresence>{showConfig && <ConfigPage onClose={() => setShowConfig(false)} />}</AnimatePresence>
 
       {/* --- Timeout Modal --- */}
       {showTimeoutModal && (
@@ -346,7 +344,6 @@ const App = ({ appName = 'MeldPOST Booking' }: AppProps): React.JSX.Element => {
         </div>
       )}
 
-
       <footer className="bg-white py-5 px-10 border-t border-slate-100 flex justify-between items-center text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] z-1">
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2">
@@ -365,4 +362,4 @@ const App = ({ appName = 'MeldPOST Booking' }: AppProps): React.JSX.Element => {
   )
 }
 
-export default App
+export default BookingApp

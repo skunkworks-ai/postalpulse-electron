@@ -101,9 +101,17 @@ export const STEPS = {
   SUCCESS: 'SUCCESS'
 }
 
+export const LODGEMENT_STEPS = {
+  WELCOME: 'WELCOME',
+  DETECTION: 'DETECTION',
+  CONFIRMATION: 'CONFIRMATION',
+  SCANNING: 'SCANNING',
+  SUCCESS: 'SUCCESS'
+}
+
 export const IDLE_TIMEOUT_SEC: number = 60
 export const COUNTDOWN_SEC: number = 10
-export const USER_ACTIVITY_EVENT = 'postalpulse:user-activity'
+export const USER_ACTIVITY_EVENT = 'meldpost:user-activity'
 
 // Set to true to bypass all Google Maps API calls and use mock data locally
 export const MOCK_GOOGLE_MAPS = false

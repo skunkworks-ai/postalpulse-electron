@@ -16,6 +16,14 @@ export default defineConfig({
         '@renderer': resolve('src/renderer/src')
       }
     },
+    build: {
+      rollupOptions: {
+        input: {
+          booking: resolve('src/renderer/index.booking.html'),
+          lodgement: resolve('src/renderer/index.lodgement.html')
+        }
+      }
+    },
     plugins: [react(), tailwindcss()]
   }
 })

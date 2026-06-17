@@ -1,8 +1,8 @@
 import React from 'react'
 import { ChevronRight, Navigation, Mail } from 'lucide-react'
 import { motion } from 'motion/react'
-import KioskButton from '../components/KioskButton/KioskButton'
-import en from '../translations/en'
+import KioskButton from '../../components/KioskButton/KioskButton'
+import en from '../../translations/booking.en'
 
 interface WelcomeStepProps {
   onStart: () => void
