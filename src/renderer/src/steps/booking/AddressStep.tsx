@@ -63,6 +63,8 @@ const AddressStep = ({
   }, [suggestions.length])
 
   const googleMapsApiKey = useSelector((state: RootState) => state.config.googleMapsApiKey)
+  const hasGoogleMapsApiKey = Boolean(googleMapsApiKey?.trim())
+  const shouldBypassValidation = !MOCK_GOOGLE_MAPS && !hasGoogleMapsApiKey
 
   const isSender = currentStep === STEPS.SENDER
   const current = isSender ? sender : recipient
@@ -70,7 +72,11 @@ const AddressStep = ({
   const copy = isSender ? en.steps.address.sender : en.steps.address.recipient
   const isNameEmpty = !current.name.trim()
   const isAddressEmpty = !current.street.trim()
-  const isProceedDisabled = isNameEmpty || isAddressEmpty || !current.isValidated || isValidating
+  const isProceedDisabled =
+    isNameEmpty ||
+    isAddressEmpty ||
+    (!shouldBypassValidation && !current.isValidated) ||
+    isValidating
 
   const handleAddressSearch = (value: string): void => {
     setAddressSearch(value)
@@ -78,7 +84,7 @@ const AddressStep = ({
 
     if (value.length < 3) return
 
-    if (!googleMapsApiKey || MOCK_GOOGLE_MAPS) {
+    if (!hasGoogleMapsApiKey || MOCK_GOOGLE_MAPS) {
       // Fallback: filter mock data when no API key is configured
       setSuggestions(
         MOCK_ADDRESSES.filter((addr) => addr.full.toLowerCase().includes(value.toLowerCase()))
@@ -120,7 +126,7 @@ const AddressStep = ({
     state: string,
     zip: string
   ): Promise<{ street: string; city: string; state: string; zip: string; isValidated: boolean } | null> => {
-    if (!googleMapsApiKey && !MOCK_GOOGLE_MAPS) {
+    if (!hasGoogleMapsApiKey && !MOCK_GOOGLE_MAPS) {
       console.warn('[CASS] Skipped — no API key configured and MOCK_GOOGLE_MAPS is false')
       return null
     }
@@ -221,7 +227,7 @@ const AddressStep = ({
   }
 
   const selectAddress = async (addr: AddressSuggestion): Promise<void> => {
-    if (addr.placeId && googleMapsApiKey && !MOCK_GOOGLE_MAPS) {
+    if (addr.placeId && hasGoogleMapsApiKey && !MOCK_GOOGLE_MAPS) {
       try {
         const data = await window.api.googleMapsGet({
           url: `https://places.googleapis.com/v1/places/${addr.placeId}`,

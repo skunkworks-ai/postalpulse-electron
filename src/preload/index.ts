@@ -21,7 +21,9 @@ const api = {
   },
   googleMapsGet: (opts: { url: string; method?: string; headers?: Record<string, string>; body?: string }): Promise<unknown> =>
     ipcRenderer.invoke('google-maps-get', opts),
-  logTransaction: (record: unknown): Promise<unknown> => ipcRenderer.invoke('log-transaction', record)
+  logTransaction: (record: unknown): Promise<unknown> => ipcRenderer.invoke('log-transaction', record),
+  captureMjpegFrame: (url: string, uuid: string): Promise<{ success: boolean; path?: string; error?: string }> =>
+    ipcRenderer.invoke('capture-mjpeg-frame', { url, uuid })
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Transaction Detail</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+
+  <header>
+    <h1>📦 Transaction Detail</h1>
+    <p id="header-sub"></p>
+  </header>
+
+  <nav><a href="/">← Back to all transactions</a></nav>
+
+  <main>
+    <div class="detail-grid">
+
+      <div class="card">
+        <div class="card-header">Transaction Info</div>
+        <div class="card-body">
+          <div id="barcode-wrapper" style="margin-bottom: 1rem; text-align: center;"></div>
+          <table class="detail-table">
+            <tbody id="field-rows"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">Capture</div>
+        <div class="card-body" id="capture-block"></div>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="/vendor/jsbarcode.js"></script>
+  <script>
+    // ── Data injected by the server ───────────────────────────────────────
+    const { transaction: t, imageBase64 } = {{DATA_JSON}}
+
+    // ── Helpers ────────────────────────────────────────────────────
+    function esc(s) {
+      return String(s ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+    }
+
+    function formatDate(d) {
+      if (!d) return '—'
+      try { return new Date(d).toLocaleString() } catch (e) { return d }
+    }
+
+    // ── Render ───────────────────────────────────────────────────────
+    document.title = `Transaction — ${t.barcodeId}`
+    document.getElementById('header-sub').textContent = `Barcode ID: ${t.barcodeId}`
+
+    // Fields — add, remove or reorder rows here freely
+    const fields = [
+      ['UUID',              t.uuid],
+      ['Barcode ID',        t.barcodeId],
+      ['Parcel Status',     t.parcelStatus],
+      ['Sender Name',       t.senderName],
+      ['Sender Email',      t.senderEmail],
+      ['Sender Address',    t.senderAddress],
+      ['Recipient Name',    t.recipientName],
+      ['Recipient Address', t.recipientAddress],
+      ['Parcel Size',       t.parcelSize],
+      ['Parcel Weight',     `${t.parcelWeight} lbs`],
+      ['Parcel Price',      `$${t.parcelPrice}`],
+      ['Start Time',        formatDate(t.startTransactionTime)],
+      ['End Time',          formatDate(t.endTransactionTime)],
+      ['Detection Time',    formatDate(t.detectionTime)],
+      ['Confirmation Time', formatDate(t.confirmationTime)],
+      ['Sender Time',       formatDate(t.senderTime)],
+      ['Recipient Time',    formatDate(t.recipientTime)],
+      ['Verify Time',       formatDate(t.verifyTime)],
+      ['Payment Time',      formatDate(t.paymentTime)],
+      ['Success Time',      formatDate(t.successTime)],
+      ['Logged At',         formatDate(t.timestamp)],
+    ]
+
+    document.getElementById('field-rows').innerHTML = fields
+      .map(([label, value]) =>
+        `<tr><th>${esc(label)}</th><td>${esc(value) || '—'}</td></tr>`
+      ).join('')
+
+    // Barcode (from barcodeId)
+    const barcodeWrapper = document.getElementById('barcode-wrapper')
+    if (t.barcodeId && typeof window.JsBarcode === 'function') {
+      barcodeWrapper.innerHTML = '<svg id="barcode-svg"></svg>'
+      try {
+        window.JsBarcode('#barcode-svg', t.barcodeId, {
+          format: 'CODE128',
+          width: 2,
+          height: 70,
+          margin: 0,
+          displayValue: true,
+          fontSize: 14,
+        })
+      } catch (e) {
+        barcodeWrapper.innerHTML = `<div class="no-capture" style="height:auto; padding: 0.75rem;">⚠️ Failed to render barcode: ${esc(t.barcodeId)}</div>`
+      }
+    } else if (t.barcodeId) {
+      barcodeWrapper.innerHTML = `<div class="no-capture" style="height:auto; padding: 0.75rem;">Barcode library unavailable. ID: ${esc(t.barcodeId)}</div>`
+    }
+
+    // Capture image
+    const captureEl = document.getElementById('capture-block')
+    if (imageBase64) {
+      captureEl.innerHTML =
+        `<img class="capture-img" src="data:image/jpeg;base64,${imageBase64}" alt="Transaction capture">`
+    } else {
+      captureEl.innerHTML = '<div class="no-capture">📷 No capture available</div>'
+    }
+  </script>
+
+</body>
+</html>

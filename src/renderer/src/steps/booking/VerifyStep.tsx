@@ -9,6 +9,7 @@ interface VerifyStepProps {
   sender: AddressRecord
   recipient: AddressRecord
   detectedParcel: ParcelData | null
+  allowUnvalidatedAddress?: boolean
   onBack: () => void
   onNext: () => void
   onEditSender: () => void
@@ -19,13 +20,14 @@ const VerifyStep = ({
   sender,
   recipient,
   detectedParcel,
+  allowUnvalidatedAddress = false,
   onBack,
   onNext,
   onEditSender,
   onEditRecipient
 }: VerifyStepProps): React.JSX.Element => {
   const copy = en.steps.verify
-  const isProceedDisabled = !sender.isValidated || !recipient.isValidated
+  const isProceedDisabled = !allowUnvalidatedAddress && (!sender.isValidated || !recipient.isValidated)
 
   return (
     <motion.div

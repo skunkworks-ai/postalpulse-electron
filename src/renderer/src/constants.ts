@@ -113,6 +113,17 @@ export const IDLE_TIMEOUT_SEC: number = 60
 export const COUNTDOWN_SEC: number = 10
 export const USER_ACTIVITY_EVENT = 'meldpost:user-activity'
 
+export const PARCEL_STATUSES = {
+  DETECTION: 'DETECTION',
+  CONFIRMATION: 'CONFIRMATION',
+  SCANNING: 'SCANNING',
+  SENDER: 'SENDER',
+  RECIPIENT: 'RECIPIENT',
+  VERIFY: 'VERIFY',
+  PAYMENT: 'PAYMENT',
+  SUCCESS: 'SUCCESS'
+}
+
 // Set to true to bypass all Google Maps API calls and use mock data locally
 export const MOCK_GOOGLE_MAPS = false
 

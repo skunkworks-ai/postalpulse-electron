@@ -3,6 +3,19 @@ import { join } from 'path'
 import { appendFileSync, existsSync } from 'fs'
 
 export interface TransactionRecord {
+  uuid?: string
+  barcodeId?: string
+  startTransactionTime?: string
+  endTransactionTime?: string
+  parcelStatus?: string
+  detectionTime?: string
+  confirmationTime?: string
+  senderTime?: string
+  recipientTime?: string
+  verifyTime?: string
+  paymentTime?: string
+  scanningTime?: string
+  successTime?: string
   timestamp: string
   senderName: string
   senderEmail: string
@@ -19,20 +32,20 @@ export interface TransactionRecord {
  */
 export function getTransactionCsvPath(): string {
   const userDataPath = app.getPath('userData')
-  return join(userDataPath, 'transaction.csv')
+  return join(userDataPath, 'transactions.csv')
 }
 
 /**
  * Get CSV headers
  */
 function getCSVHeaders(): string {
-  return 'Timestamp,Sender Name,Sender Email,Sender Address,Recipient Name,Recipient Address,Parcel Size,Parcel Weight (lbs),Parcel Price ($)\n'
+  return 'UUID,Barcode ID,Start Transaction Time,End Transaction Time,Parcel Status,Detection Time,Confirmation Time,Sender Time,Recipient Time,Verify Time,Payment Time,Scanning Time,Success Time,Timestamp,Sender Name,Sender Email,Sender Address,Recipient Name,Recipient Address,Parcel Size,Parcel Weight (lbs),Parcel Price ($)\n'
 }
 
 /**
  * Escape CSV fields to handle commas and quotes
  */
-function escapeCSVField(field: string | number): string {
+function escapeCSVField(field: string | number | undefined): string {
   if (field === null || field === undefined) {
     return ''
   }
@@ -48,6 +61,19 @@ function escapeCSVField(field: string | number): string {
  */
 function recordToCSVRow(record: TransactionRecord): string {
   const fields = [
+    record.uuid,
+    record.barcodeId,
+    record.startTransactionTime,
+    record.endTransactionTime,
+    record.parcelStatus,
+    record.detectionTime,
+    record.confirmationTime,
+    record.senderTime,
+    record.recipientTime,
+    record.verifyTime,
+    record.paymentTime,
+    record.scanningTime,
+    record.successTime,
     record.timestamp,
     record.senderName,
     record.senderEmail,

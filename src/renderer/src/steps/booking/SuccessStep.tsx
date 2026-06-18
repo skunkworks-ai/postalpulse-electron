@@ -6,18 +6,18 @@ import KioskButton from '../../components/KioskButton/KioskButton'
 import en from '../../translations/booking.en'
 
 interface SuccessStepProps {
+  barcodeId: string
   onReset: () => void
 }
 
-const SuccessStep = ({ onReset }: SuccessStepProps): React.JSX.Element => {
+const SuccessStep = ({ barcodeId, onReset }: SuccessStepProps): React.JSX.Element => {
   const copy = en.steps.success
   const barcodeRef = useRef<SVGSVGElement>(null)
-  const trackingNumber = '9405500000000000001'
   const [showPrintModal, setShowPrintModal] = useState(false)
 
   useEffect(() => {
-    if (barcodeRef.current) {
-      JsBarcode(barcodeRef.current, trackingNumber, {
+    if (barcodeRef.current && barcodeId) {
+      JsBarcode(barcodeRef.current, barcodeId, {
         format: 'CODE128',
         width: 2,
         height: 80,
@@ -25,7 +25,7 @@ const SuccessStep = ({ onReset }: SuccessStepProps): React.JSX.Element => {
         margin: 10
       })
     }
-  }, [])
+  }, [barcodeId])
 
   const handlePrint = (): void => {
     setShowPrintModal(true)
@@ -81,7 +81,7 @@ const SuccessStep = ({ onReset }: SuccessStepProps): React.JSX.Element => {
               {copy.trackingHashLabel}
             </p>
             <p className="text-2xl font-black text-(--pp-brand-primary) font-mono tracking-tight mb-6">
-              {trackingNumber}
+              {barcodeId}
             </p>
             <div className="flex justify-center bg-white p-4 rounded-lg border border-slate-200 mb-5">
               <svg ref={barcodeRef}></svg>
@@ -163,6 +163,9 @@ const SuccessStep = ({ onReset }: SuccessStepProps): React.JSX.Element => {
               </h3>
               <p className="kiosk-subtext text-slate-400 font-bold text-xs uppercase tracking-widest mb-8">
                 Sending label to thermal printer...
+              </p>
+              <p className="text-[10px] font-black tracking-[0.25em] text-slate-400 mb-4 break-all">
+                {barcodeId}
               </p>
 
               <div className="space-y-3">

@@ -13,17 +13,196 @@ import AddressStep from './steps/booking/AddressStep'
 import VerifyStep from './steps/booking/VerifyStep'
 import PaymentStep from './steps/booking/PaymentStep'
 import SuccessStep from './steps/booking/SuccessStep'
-import { STEPS, IDLE_TIMEOUT_SEC, COUNTDOWN_SEC, USER_ACTIVITY_EVENT } from './constants'
+import { STEPS, IDLE_TIMEOUT_SEC, COUNTDOWN_SEC, USER_ACTIVITY_EVENT, PARCEL_STATUSES, MOCK_GOOGLE_MAPS } from './constants'
 import type { RootState } from './store'
-import { logSession } from './utils/transactionLogger'
 import type { AddressRecord, ParcelData } from './types'
+
+interface BookingTransactionRecord {
+  uuid: string
+  barcodeId: string
+  startTransactionTime: string
+  endTransactionTime: string
+  parcelStatus: string
+  detectionTime: string
+  confirmationTime: string
+  senderTime: string
+  recipientTime: string
+  verifyTime: string
+  paymentTime: string
+  scanningTime: string
+  successTime: string
+  timestamp: string
+  senderName: string
+  senderEmail: string
+  senderAddress: string
+  recipientName: string
+  recipientAddress: string
+  parcelSize: string
+  parcelWeight: number
+  parcelPrice: number
+  loggedAt?: string
+}
+
+const formatAddress = (address: AddressRecord): string =>
+  `${address.street}, ${address.city}, ${address.state} ${address.zip}`
+
+const createBookingTransaction = (): BookingTransactionRecord => {
+  const startTransactionTime = new Date().toISOString()
+  const uuid = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`
+
+  return {
+    uuid,
+    barcodeId: '', // Generate when payment succeeds
+    startTransactionTime,
+    endTransactionTime: '',
+    parcelStatus: PARCEL_STATUSES.DETECTION,
+    detectionTime: startTransactionTime,
+    confirmationTime: '',
+    senderTime: '',
+    recipientTime: '',
+    verifyTime: '',
+    paymentTime: '',
+    scanningTime: '',
+    successTime: '',
+    timestamp: startTransactionTime,
+    senderName: '',
+    senderEmail: '',
+    senderAddress: '',
+    recipientName: '',
+    recipientAddress: '',
+    parcelSize: '',
+    parcelWeight: 0,
+    parcelPrice: 0
+  }
+}
 
 const BookingApp = (): React.JSX.Element => {
   const appName = 'MeldPOST Booking'
   const themeColors = useSelector((state: RootState) => state.config.colors)
+  const googleMapsApiKey = useSelector((state: RootState) => state.config.googleMapsApiKey)
+  const allowUnvalidatedAddress = !MOCK_GOOGLE_MAPS && !googleMapsApiKey?.trim()
   const [currentStep, setCurrentStep] = useState(STEPS.WELCOME)
   const [detectedParcel, setDetectedParcel] = useState<ParcelData | null>(null)
   const [manualAddressEntry, setManualAddressEntry] = useState(false)
+  const [activeBarcodeId, setActiveBarcodeId] = useState('')
+  const transactionRef = useRef<BookingTransactionRecord | null>(null)
+  const loggingInFlightRef = useRef(false)
+
+  const startBookingTransaction = (): void => {
+    const transaction = createBookingTransaction()
+    transactionRef.current = transaction
+    loggingInFlightRef.current = false
+    setActiveBarcodeId(transaction.barcodeId)
+  }
+
+  const clearBookingTransaction = (): void => {
+    transactionRef.current = null
+    loggingInFlightRef.current = false
+    setActiveBarcodeId('')
+  }
+
+  const updateBookingTransaction = (patch: Partial<BookingTransactionRecord>): void => {
+    if (!transactionRef.current) return
+    transactionRef.current = {
+      ...transactionRef.current,
+      ...patch
+    }
+  }
+
+  const markBookingStatus = (status: string): void => {
+    if (!transactionRef.current) return
+    const timestamp = new Date().toISOString()
+    const patch: Partial<BookingTransactionRecord> = { parcelStatus: status }
+
+    if (status === PARCEL_STATUSES.DETECTION) patch.detectionTime = timestamp
+    if (status === PARCEL_STATUSES.CONFIRMATION) patch.confirmationTime = timestamp
+    if (status === PARCEL_STATUSES.SENDER) patch.senderTime = timestamp
+    if (status === PARCEL_STATUSES.RECIPIENT) patch.recipientTime = timestamp
+    if (status === PARCEL_STATUSES.VERIFY) patch.verifyTime = timestamp
+    if (status === PARCEL_STATUSES.PAYMENT) patch.paymentTime = timestamp
+    if (status === PARCEL_STATUSES.SUCCESS) {
+      patch.successTime = timestamp
+      patch.endTransactionTime = timestamp
+    }
+
+    updateBookingTransaction(patch)
+  }
+
+  const finalizeBookingTransaction = async (): Promise<void> => {
+    if (!transactionRef.current) return
+    if (transactionRef.current.loggedAt || loggingInFlightRef.current) return
+
+    loggingInFlightRef.current = true
+    const timestamp = new Date().toISOString()
+    
+    // Generate barcode ID on success
+    const barcodeId = transactionRef.current.uuid.replace(/-/g, '').slice(0, 16).toUpperCase()
+    setActiveBarcodeId(barcodeId)
+    
+    const transaction = {
+      ...transactionRef.current,
+      barcodeId,
+      parcelStatus: PARCEL_STATUSES.SUCCESS,
+      successTime: timestamp,
+      endTransactionTime: timestamp,
+      timestamp,
+      senderName: sender.name,
+      senderEmail: sender.email || '',
+      senderAddress: formatAddress(sender),
+      recipientName: recipient.name,
+      recipientAddress: formatAddress(recipient),
+      parcelSize: detectedParcel?.size ?? '',
+      parcelWeight: detectedParcel?.weight ?? 0,
+      parcelPrice: detectedParcel?.price ?? 0
+    }
+
+    try {
+      await (window as any).api.logTransaction(transaction)
+      transactionRef.current = {
+        ...transaction,
+        loggedAt: new Date().toISOString()
+      }
+    } finally {
+      loggingInFlightRef.current = false
+    }
+  }
+
+  const abandonBookingTransaction = (): void => {
+    if (!transactionRef.current) return
+    if (transactionRef.current.loggedAt || loggingInFlightRef.current) return
+
+    loggingInFlightRef.current = true
+
+    // Capture all available state into the record before any cleanup
+    const transaction = {
+      ...transactionRef.current,
+      senderName: sender.name,
+      senderEmail: sender.email || '',
+      senderAddress: sender.name ? formatAddress(sender) : '',
+      recipientName: recipient.name,
+      recipientAddress: recipient.name ? formatAddress(recipient) : '',
+      parcelSize: detectedParcel?.size ?? transactionRef.current.parcelSize,
+      parcelWeight: detectedParcel?.weight ?? transactionRef.current.parcelWeight,
+      parcelPrice: detectedParcel?.price ?? transactionRef.current.parcelPrice
+    }
+    // Fire-and-forget — don't block the synchronous UI reset
+    ;(window as any).api
+      .logTransaction(transaction)
+      .then(() => {
+        if (transactionRef.current?.uuid === transaction.uuid) {
+          transactionRef.current = {
+            ...transaction,
+            loggedAt: new Date().toISOString()
+          }
+        }
+      })
+      .catch((err: unknown) => {
+        console.error('Failed to log abandoned transaction:', err)
+      })
+      .finally(() => {
+        loggingInFlightRef.current = false
+      })
+  }
 
   // Config page state
   const [showConfig, setShowConfig] = useState(false)
@@ -79,18 +258,11 @@ const BookingApp = (): React.JSX.Element => {
   }
 
   const resetApp = (): void => {
-    // Log transaction if we completed a successful session
-    if (currentStep === STEPS.SUCCESS && sender.name && recipient.name && detectedParcel) {
-      logSession({
-        sender,
-        recipient,
-        parcel: detectedParcel
-      })
-    }
-
+    abandonBookingTransaction()
     resetAddresses()
     setDetectedParcel(null)
     setShowTimeoutModal(false)
+    clearBookingTransaction()
     setCurrentStep(STEPS.WELCOME)
   }
 
@@ -210,7 +382,13 @@ const BookingApp = (): React.JSX.Element => {
         <div id="container" className="z-1 flex-1 flex flex-col">
           <AnimatePresence mode="wait">
             {currentStep === STEPS.WELCOME && (
-              <WelcomeStep key={STEPS.WELCOME} onStart={() => setCurrentStep(STEPS.DETECTION)} />
+              <WelcomeStep
+                key={STEPS.WELCOME}
+                onStart={() => {
+                  startBookingTransaction()
+                  setCurrentStep(STEPS.DETECTION)
+                }}
+              />
             )}
 
             {currentStep === STEPS.DETECTION && (
@@ -218,6 +396,25 @@ const BookingApp = (): React.JSX.Element => {
                 key={STEPS.DETECTION}
                 onSuccess={(parcel) => {
                   setDetectedParcel(parcel)
+                  updateBookingTransaction({
+                    parcelSize: parcel.size,
+                    parcelWeight: parcel.weight,
+                    parcelPrice: parcel.price
+                  })
+                  markBookingStatus(PARCEL_STATUSES.CONFIRMATION)
+                  
+                  // Capture image from MJPEG stream
+                  if (transactionRef.current) {
+                    const config = (window as any).api.getConfig()
+                    Promise.resolve(config).then((cfg: any) => {
+                      if (cfg?.unisonAddressURL) {
+                        const mjpegUrl = `${cfg.unisonAddressURL}/stream`
+                        ;(window as any).api.captureMjpegFrame(mjpegUrl, transactionRef.current!.uuid)
+                          .catch((err: any) => console.error('Image capture failed:', err))
+                      }
+                    })
+                  }
+                  
                   setCurrentStep(STEPS.CONFIRMATION)
                 }}
               />
@@ -229,9 +426,13 @@ const BookingApp = (): React.JSX.Element => {
                 detectedParcel={detectedParcel}
                 onDiscard={() => {
                   resetAddresses()
+                  clearBookingTransaction()
                   setCurrentStep(STEPS.DETECTION)
                 }}
-                onConfirm={() => setCurrentStep(STEPS.SENDER)}
+                onConfirm={() => {
+                  markBookingStatus(PARCEL_STATUSES.SENDER)
+                  setCurrentStep(STEPS.SENDER)
+                }}
               />
             )}
 
@@ -254,8 +455,10 @@ const BookingApp = (): React.JSX.Element => {
                 }}
                 onNext={() => {
                   if (currentStep === STEPS.SENDER) {
+                    markBookingStatus(PARCEL_STATUSES.RECIPIENT)
                     setCurrentStep(STEPS.RECIPIENT)
                   } else {
+                    markBookingStatus(PARCEL_STATUSES.VERIFY)
                     setManualAddressEntry(false)
                     setCurrentStep(STEPS.VERIFY)
                   }
@@ -269,8 +472,12 @@ const BookingApp = (): React.JSX.Element => {
                 sender={sender}
                 recipient={recipient}
                 detectedParcel={detectedParcel}
+                allowUnvalidatedAddress={allowUnvalidatedAddress}
                 onBack={() => setCurrentStep(STEPS.RECIPIENT)}
-                onNext={() => setCurrentStep(STEPS.PAYMENT)}
+                onNext={() => {
+                  markBookingStatus(PARCEL_STATUSES.PAYMENT)
+                  setCurrentStep(STEPS.PAYMENT)
+                }}
                 onEditSender={() => {
                   setManualAddressEntry(true)
                   setCurrentStep(STEPS.SENDER)
@@ -286,12 +493,16 @@ const BookingApp = (): React.JSX.Element => {
               <PaymentStep
                 key={STEPS.PAYMENT}
                 detectedParcel={detectedParcel}
-                onSuccess={() => setCurrentStep(STEPS.SUCCESS)}
+                onSuccess={async () => {
+                  markBookingStatus(PARCEL_STATUSES.PAYMENT)
+                  await finalizeBookingTransaction()
+                  setCurrentStep(STEPS.SUCCESS)
+                }}
                 onBack={() => setCurrentStep(STEPS.VERIFY)}
               />
             )}
 
-            {currentStep === STEPS.SUCCESS && <SuccessStep key={STEPS.SUCCESS} onReset={resetApp} />}
+            {currentStep === STEPS.SUCCESS && <SuccessStep key={STEPS.SUCCESS} barcodeId={activeBarcodeId} onReset={resetApp} />}
           </AnimatePresence>
         </div>
       </main>

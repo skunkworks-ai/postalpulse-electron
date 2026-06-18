@@ -2,7 +2,9 @@ import { app, shell, BrowserWindow, ipcMain, net } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { logTransaction, type TransactionRecord } from './transactionLogger'
+import { startWebServer } from './webServer'
 import icon from '../../resources/icon.png?asset'
+import { mkdirSync, writeFileSync } from 'fs'
 
 const Store = require('electron-store') as any
 
@@ -38,6 +40,44 @@ const configStore: any = new Store({
 })
 
 const rendererEntryFile = appVariant === 'lodgement' ? 'index.lodgement.html' : 'index.booking.html'
+
+const JPEG_START = Buffer.from([0xff, 0xd8])
+const JPEG_END = Buffer.from([0xff, 0xd9])
+const CAPTURE_TIMEOUT_MS = 10000
+
+const PLACEHOLDER_JPEG = Buffer.from([
+  0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00, 0x01, 0x01, 0x00, 0x00, 0x01,
+  0x00, 0x01, 0x00, 0x00, 0xff, 0xdb, 0x00, 0x43, 0x00, 0x08, 0x06, 0x06, 0x07, 0x06, 0x05, 0x08,
+  0x07, 0x07, 0x07, 0x09, 0x09, 0x08, 0x0a, 0x0c, 0x14, 0x0d, 0x0c, 0x0b, 0x0b, 0x0c, 0x19, 0x12,
+  0x13, 0x0f, 0x14, 0x1d, 0x1a, 0x1f, 0x1e, 0x1d, 0x1a, 0x1c, 0x1c, 0x20, 0x24, 0x2e, 0x27, 0x20,
+  0x22, 0x2c, 0x23, 0x1c, 0x1c, 0x28, 0x37, 0x29, 0x2c, 0x30, 0x31, 0x34, 0x34, 0x34, 0x1f, 0x27,
+  0x39, 0x3d, 0x38, 0x32, 0x3c, 0x2e, 0x33, 0x34, 0x32, 0xff, 0xc0, 0x00, 0x0b, 0x08, 0x00, 0x01,
+  0x00, 0x01, 0x01, 0x01, 0x11, 0x00, 0xff, 0xc4, 0x00, 0x14, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xc4, 0x00, 0x14,
+  0x10, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0xff, 0xda, 0x00, 0x08, 0x01, 0x01, 0x00, 0x00, 0x3f, 0x00, 0x7f, 0xff, 0xd9
+])
+
+function getCapturesDir(): string {
+  return join(app.getPath('userData'), 'transaction_captures')
+}
+
+function ensureCapturesDir(): string {
+  const capturesDir = getCapturesDir()
+  mkdirSync(capturesDir, { recursive: true })
+  return capturesDir
+}
+
+function writePlaceholderCapture(uuid: string, reason: string): { success: boolean; path?: string; error?: string } {
+  try {
+    const capturesDir = ensureCapturesDir()
+    const filePath = join(capturesDir, `${uuid}.jpg`)
+    writeFileSync(filePath, PLACEHOLDER_JPEG)
+    return { success: false, path: filePath, error: reason }
+  } catch (err) {
+    return { success: false, error: `${reason}; also failed to create placeholder: ${err}` }
+  }
+}
 
 function createWindow(): void {
   // Create the browser window.
@@ -84,12 +124,24 @@ app.whenReady().then(() => {
   // Set app user model id for windows
   electronApp.setAppUserModelId(getAppUserModelId())
 
+  // Ensure capture directory exists on first install/startup
+  try {
+    ensureCapturesDir()
+  } catch (err) {
+    console.error('[Capture] Failed to initialize capture directory:', err)
+  }
+
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.
   // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
   })
+
+  // Start the transaction viewer web server for the booking variant
+  if (appVariant === 'booking') {
+    startWebServer()
+  }
 
   // IPC test
   ipcMain.on('ping', () => console.log('pong'))
@@ -143,6 +195,76 @@ app.whenReady().then(() => {
   ipcMain.handle('log-transaction', (_event, record: TransactionRecord) => {
     logTransaction(record)
     return { success: true }
+  })
+
+  // Capture image from MJPEG stream
+  ipcMain.handle('capture-mjpeg-frame', async (_event, { url, uuid }: { url: string; uuid: string }): Promise<{ success: boolean; path?: string; error?: string }> => {
+    return new Promise((resolve) => {
+      try {
+        const request = net.request(url)
+        let buffer = Buffer.alloc(0)
+        let settled = false
+
+        const finish = (result: { success: boolean; path?: string; error?: string }): void => {
+          if (settled) return
+          settled = true
+          clearTimeout(timeout)
+          try {
+            request.abort()
+          } catch {
+            // no-op
+          }
+          resolve(result)
+        }
+
+        const timeout = setTimeout(() => {
+          finish(writePlaceholderCapture(uuid, 'Timed out waiting for MJPEG frame'))
+        }, CAPTURE_TIMEOUT_MS)
+
+        request.on('response', (response) => {
+          response.on('data', (chunk) => {
+            if (settled) return
+            buffer = Buffer.concat([buffer, chunk])
+
+            // Find JPEG frame boundaries in MJPEG stream (FFD8 = start, FFD9 = end)
+            const startIdx = buffer.indexOf(JPEG_START)
+            const endIdx = startIdx !== -1 ? buffer.indexOf(JPEG_END, startIdx + 2) : -1
+
+            if (startIdx !== -1 && endIdx !== -1) {
+              try {
+                const frameBuffer = buffer.slice(startIdx, endIdx + 2)
+                const capturesDir = ensureCapturesDir()
+                const filePath = join(capturesDir, `${uuid}.jpg`)
+                writeFileSync(filePath, frameBuffer)
+                finish({ success: true, path: filePath })
+              } catch (err) {
+                finish(writePlaceholderCapture(uuid, `Failed to save captured frame: ${err}`))
+              }
+              return
+            }
+
+            // Keep memory bounded while waiting for frame boundaries.
+            if (buffer.length > 8 * 1024 * 1024) {
+              buffer = buffer.slice(-2 * 1024 * 1024)
+            }
+          })
+
+          response.on('end', () => {
+            if (!settled) {
+              finish(writePlaceholderCapture(uuid, 'No JPEG frame found in stream'))
+            }
+          })
+        })
+
+        request.on('error', (err) => {
+          finish(writePlaceholderCapture(uuid, `Network error: ${err.message}`))
+        })
+
+        request.end()
+      } catch (err) {
+        resolve(writePlaceholderCapture(uuid, `Error: ${err}`))
+      }
+    })
   })
 
   createWindow()

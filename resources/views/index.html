@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MeldPOST — Transactions</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+
+  <header>
+    <h1>📦 MeldPOST — Transaction Log</h1>
+    <p id="subtitle"></p>
+  </header>
+
+  <main>
+    <div class="card">
+      <div class="card-header">
+        All Transactions
+        <span class="badge" id="badge">0</span>
+      </div>
+      <div id="content"></div>
+    </div>
+  </main>
+
+  <script>
+    // ── Data injected by the server ───────────────────────────────────────
+    const transactions = {{DATA_JSON}}
+
+    // ── Helpers ────────────────────────────────────────────────────
+    function esc(s) {
+      return String(s ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+    }
+
+    function formatDate(d) {
+      if (!d) return '—'
+      try { return new Date(d).toLocaleString() } catch (e) { return d }
+    }
+
+    function statusPill(status) {
+      if (!status) return '<span class="pill pill-gray">—</span>'
+      const s = status.toLowerCase()
+      if (s.includes('success') || s.includes('complete'))
+        return `<span class="pill pill-green">${esc(status)}</span>`
+      if (s.includes('pending') || s.includes('progress'))
+        return `<span class="pill pill-yellow">${esc(status)}</span>`
+      if (s.includes('fail') || s.includes('error') || s.includes('cancel'))
+        return `<span class="pill pill-red">${esc(status)}</span>`
+      return `<span class="pill pill-gray">${esc(status)}</span>`
+    }
+
+    // ── Render ───────────────────────────────────────────────────────
+    document.getElementById('subtitle').textContent =
+      `${transactions.length} record${transactions.length !== 1 ? 's' : ''} · auto-refreshes every 30 s`
+
+    document.getElementById('badge').textContent = String(transactions.length)
+
+    const contentEl = document.getElementById('content')
+
+    if (transactions.length === 0) {
+      contentEl.innerHTML = '<div class="empty">📭 No transactions recorded yet.</div>'
+    } else {
+      const rows = transactions.map(t => `
+        <tr>
+          <td><a href="/${encodeURIComponent(t.uuid)}">${esc(t.uuid) || '—'}</a></td>
+          <td><a href="/barcode_id/${encodeURIComponent(t.barcodeId)}">${esc(t.barcodeId) || '—'}</a></td>
+          <td>${esc(t.senderName)}</td>
+          <td>${esc(t.senderAddress)}</td>
+          <td>${esc(t.recipientName)}</td>
+          <td>${esc(t.recipientAddress)}</td>
+          <td>${esc(t.parcelSize)}</td>
+          <td>${esc(t.parcelWeight)} lbs</td>
+          <td>$${esc(t.parcelPrice)}</td>
+          <td>${statusPill(t.parcelStatus)}</td>
+          <td>${esc(formatDate(t.timestamp))}</td>
+        </tr>
+      `).join('')
+
+      contentEl.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>UUID</th>
+              <th>Barcode ID</th>
+              <th>Sender</th>
+              <th>Sender Address</th>
+              <th>Recipient</th>
+              <th>Recipient Address</th>
+              <th>Size</th>
+              <th>Weight</th>
+              <th>Price</th>
+              <th>Status</th>
+              <th>Timestamp</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `
+    }
+
+    setTimeout(() => location.reload(), 30000)
+  </script>
+
+</body>
+</html>
