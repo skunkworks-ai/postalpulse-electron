@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useSelector } from 'react-redux'
 import { ChevronRight, Timer, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
@@ -18,6 +18,54 @@ import type { AddressRecord, ParcelData } from './types'
 
 const METER_TO_INCH = 39.37007874
 const INCH_TO_METER = 0.0254
+const BARCODE_CLEAR_TIMEOUT_MS = 500
+
+interface LodgementTransaction {
+  barcodeId?: string
+  senderName?: string
+  senderEmail?: string
+  senderAddress?: string
+  recipientName?: string
+  recipientAddress?: string
+  parcelSize?: string
+  parcelActualDimensions?: string
+  parcelWeight?: string | number
+  parcelPrice?: string | number
+}
+
+const parseDimensionsInInches = (dimensions: string): [number, number, number] | null => {
+  const numbers = dimensions.match(/\d+(?:\.\d+)?/g)?.map(Number) ?? []
+  if (numbers.length < 3) return null
+  const [length, width, height] = numbers
+  if ([length, width, height].some((value) => !Number.isFinite(value) || value <= 0)) {
+    return null
+  }
+  return [length, width, height]
+}
+
+const parseUSAddress = (fullAddress: string): { street: string; city: string; state: string; zip: string } => {
+  const trimmed = fullAddress.trim()
+  if (!trimmed) {
+    return { street: '', city: '', state: '', zip: '' }
+  }
+
+  const segments = trimmed.split(',').map((segment) => segment.trim()).filter(Boolean)
+  if (segments.length < 3) {
+    return { street: trimmed, city: '', state: '', zip: '' }
+  }
+
+  const street = segments.slice(0, segments.length - 2).join(', ')
+  const city = segments[segments.length - 2] ?? ''
+  const stateZip = segments[segments.length - 1] ?? ''
+  const stateZipMatch = stateZip.match(/^([A-Z]{2})\s+([A-Z0-9-]+)$/i)
+
+  return {
+    street,
+    city,
+    state: stateZipMatch?.[1]?.toUpperCase() ?? stateZip,
+    zip: stateZipMatch?.[2] ?? ''
+  }
+}
 
 const formatDimensionsInMeters = (length: number, width: number, height: number): string =>
   `${(length * INCH_TO_METER).toFixed(2)}m x ${(width * INCH_TO_METER).toFixed(2)}m x ${(height * INCH_TO_METER).toFixed(2)}m`
@@ -25,9 +73,15 @@ const formatDimensionsInMeters = (length: number, width: number, height: number)
 const LodgementApp = (): React.JSX.Element => {
   const appName = 'MeldPOST Lodgement'
   const themeColors = useSelector((state: RootState) => state.config.colors)
+  const melpostBookingServerURL = useSelector((state: RootState) => state.config.melpostBookingServerURL)
   const [currentStep, setCurrentStep] = useState(LODGEMENT_STEPS.WELCOME)
   const [detectedParcel, setDetectedParcel] = useState<ParcelData | null>(null)
+  const [scannedBarcodeId, setScannedBarcodeId] = useState('')
+  const [scanError, setScanError] = useState<string | null>(null)
   const [manualAddressEntry, setManualAddressEntry] = useState(false)
+  const barcodeBufferRef = useRef('')
+  const barcodeClearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const lodgementSuccessSyncedBarcodeRef = useRef<string | null>(null)
 
   // Config page state
   const [showConfig, setShowConfig] = useState(false)
@@ -82,10 +136,101 @@ const LodgementApp = (): React.JSX.Element => {
     setRecipient({ name: '', street: '', city: '', state: '', zip: '', isValidated: false })
   }
 
+  const startDetectionFromBarcode = (barcodeId: string): void => {
+    setScanError(null)
+    setScannedBarcodeId(barcodeId.trim().toUpperCase())
+    setCurrentStep(LODGEMENT_STEPS.DETECTION)
+  }
+
+  const mapTransactionToState = (transaction: LodgementTransaction): void => {
+    const normalizedSize = (transaction.parcelSize ?? '').trim().toUpperCase()
+    const box = Object.values(BOX_SPECS).find((spec) => spec.name === normalizedSize) ?? BOX_SPECS.LARGE
+    const weight = Number(transaction.parcelWeight)
+    const price = Number(transaction.parcelPrice)
+    const actualDimensions = (transaction.parcelActualDimensions ?? '').trim()
+    const parsedActualDimensions = parseDimensionsInInches(actualDimensions)
+    const actualDimensionsMetric = parsedActualDimensions
+      ? formatDimensionsInMeters(parsedActualDimensions[0], parsedActualDimensions[1], parsedActualDimensions[2])
+      : formatDimensionsInMeters(box.maxL, box.maxW, box.maxH)
+
+    const senderAddress = parseUSAddress(transaction.senderAddress ?? '')
+    const recipientAddress = parseUSAddress(transaction.recipientAddress ?? '')
+
+    setSender({
+      name: transaction.senderName ?? '',
+      email: transaction.senderEmail ?? '',
+      street: senderAddress.street,
+      city: senderAddress.city,
+      state: senderAddress.state,
+      zip: senderAddress.zip,
+      isValidated: true
+    })
+
+    setRecipient({
+      name: transaction.recipientName ?? '',
+      street: recipientAddress.street,
+      city: recipientAddress.city,
+      state: recipientAddress.state,
+      zip: recipientAddress.zip,
+      isValidated: true
+    })
+
+    setDetectedParcel({
+      size: box.name,
+      dimensions: `${box.maxL}" x ${box.maxW}" x ${box.maxH}"`,
+      dimensionsMetric: formatDimensionsInMeters(box.maxL, box.maxW, box.maxH),
+      actualDimensions: actualDimensions || `${box.maxL}" x ${box.maxW}" x ${box.maxH}"`,
+      actualDimensionsMetric,
+      weight: Number.isFinite(weight) ? weight : 0,
+      price: Number.isFinite(price) ? price : box.price
+    })
+  }
+
   const resetApp = (): void => {
     setShowTimeoutModal(false)
+    setScanError(null)
+    setScannedBarcodeId('')
+    lodgementSuccessSyncedBarcodeRef.current = null
+    barcodeBufferRef.current = ''
     setCurrentStep(LODGEMENT_STEPS.WELCOME)
   }
+
+  const updateLodgementTransaction = useCallback(async (patch: {
+    parcelStatus: string
+    scanningTime?: string
+    lodgementTime?: string
+  }): Promise<void> => {
+    if (!scannedBarcodeId.trim()) return
+    const baseURL = melpostBookingServerURL.trim().replace(/\/+$/, '')
+    if (!baseURL) return
+
+    const requestURL = `${baseURL}/barcode_id/${encodeURIComponent(scannedBarcodeId.trim())}?format=json`
+    const bookingRequest = window.api.bookingServerGet ?? window.api.googleMapsGet
+
+    try {
+      await bookingRequest({
+        url: requestURL,
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(patch)
+      })
+    } catch (error) {
+      console.error('Failed to update lodgement transaction:', error)
+    }
+  }, [melpostBookingServerURL, scannedBarcodeId])
+
+  useEffect(() => {
+    if (currentStep !== LODGEMENT_STEPS.SUCCESS) return
+    if (!scannedBarcodeId.trim()) return
+    if (lodgementSuccessSyncedBarcodeRef.current === scannedBarcodeId) return
+
+    lodgementSuccessSyncedBarcodeRef.current = scannedBarcodeId
+    const lodgementTime = new Date().toISOString()
+    void updateLodgementTransaction({
+      parcelStatus: 'LODGEMENT_SUCCESS',
+      lodgementTime
+    })
+  }, [currentStep, scannedBarcodeId, updateLodgementTransaction])
 
   const startIdleTimer = (): void => {
     if (idleTimerRef.current) clearTimeout(idleTimerRef.current)
@@ -185,6 +330,44 @@ const LodgementApp = (): React.JSX.Element => {
     rootStyle.setProperty('--pp-keyboard', themeColors.keyboard)
   }, [themeColors])
 
+  useEffect(() => {
+    if (currentStep !== LODGEMENT_STEPS.WELCOME) return
+
+    const clearBarcodeBufferLater = (): void => {
+      if (barcodeClearTimerRef.current) clearTimeout(barcodeClearTimerRef.current)
+      barcodeClearTimerRef.current = setTimeout(() => {
+        barcodeBufferRef.current = ''
+      }, BARCODE_CLEAR_TIMEOUT_MS)
+    }
+
+    const handleBarcodeScanInput = (event: KeyboardEvent): void => {
+      if (event.key === 'Enter') {
+        const value = barcodeBufferRef.current.trim()
+        barcodeBufferRef.current = ''
+        if (value) {
+          event.preventDefault()
+          startDetectionFromBarcode(value)
+        }
+        return
+      }
+
+      if (event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey) {
+        barcodeBufferRef.current += event.key
+        clearBarcodeBufferLater()
+      }
+    }
+
+    window.addEventListener('keydown', handleBarcodeScanInput)
+    return () => {
+      window.removeEventListener('keydown', handleBarcodeScanInput)
+      if (barcodeClearTimerRef.current) {
+        clearTimeout(barcodeClearTimerRef.current)
+        barcodeClearTimerRef.current = null
+      }
+      barcodeBufferRef.current = ''
+    }
+  }, [currentStep])
+
   return (
     <div className="kiosk-app min-h-screen bg-(--pp-background) text-slate-900 font-sans flex flex-col overflow-hidden select-none">
       <Header onLogoTap={handleLogoTap} />
@@ -204,57 +387,69 @@ const LodgementApp = (): React.JSX.Element => {
         <div id="container" className="z-1 flex-1 flex flex-col">
           <AnimatePresence mode="wait">
             {currentStep === LODGEMENT_STEPS.WELCOME && (
-              <WelcomeStep key={LODGEMENT_STEPS.WELCOME} onStart={() => setCurrentStep(LODGEMENT_STEPS.DETECTION)} />
+              <WelcomeStep
+                key={LODGEMENT_STEPS.WELCOME}
+                scanError={scanError}
+                onStart={() => {
+                  setScanError('Please scan a booking barcode to continue.')
+                }}
+              />
             )}
             {currentStep === LODGEMENT_STEPS.DETECTION && (
               <DetectionStep
                 key={LODGEMENT_STEPS.DETECTION}
-                onSuccess={() => {
-                  setSender({
-                    name: 'Jane E. Smith',
-                    email: '',
-                    street: '123 Main St',
-                    city: 'Anytown',
-                    state: 'CA',
-                    zip: '12345',
-                    isValidated: true
-                  })
-                  setRecipient({
-                    name: 'John D. Doe',
-                    street: '456 Elm St',
-                    city: 'Othertown',
-                    state: 'NY',
-                    zip: '67890',
-                    isValidated: true
-                  })
-
-                  const sampleSize = BOX_SPECS.MEDIUM
-                  const sampleParcel: ParcelData = {
-                    size: sampleSize.name,
-                    dimensions: `${sampleSize.maxL}" x ${sampleSize.maxW}" x ${sampleSize.maxH}"`,
-                    dimensionsMetric: formatDimensionsInMeters(sampleSize.maxL, sampleSize.maxW, sampleSize.maxH),
-                    actualDimensions: `${sampleSize.maxL}" x ${sampleSize.maxW}" x ${sampleSize.maxH}"`,
-                    actualDimensionsMetric: formatDimensionsInMeters(sampleSize.maxL, sampleSize.maxW, sampleSize.maxH),
-                    weight: 3.5,
-                    price: sampleSize.price
-                  }
-
-                  setDetectedParcel(sampleParcel);
+                barcodeId={scannedBarcodeId}
+                onSuccess={(transaction) => {
+                  mapTransactionToState(transaction)
                   setCurrentStep(LODGEMENT_STEPS.CONFIRMATION)
-                }} />
+                }}
+                onFailure={(message) => {
+                  setScanError(message)
+                  setCurrentStep(LODGEMENT_STEPS.WELCOME)
+                }}
+              />
             )}
             {currentStep === LODGEMENT_STEPS.CONFIRMATION && (
-              <ConfirmationStep key={LODGEMENT_STEPS.CONFIRMATION} onConfirm={() => setCurrentStep(LODGEMENT_STEPS.SCANNING)} onDiscard={() => setCurrentStep(LODGEMENT_STEPS.WELCOME)} detectedParcel={detectedParcel} sender={sender} recipient={recipient} />
+              <ConfirmationStep
+                key={LODGEMENT_STEPS.CONFIRMATION}
+                onConfirm={() => setCurrentStep(LODGEMENT_STEPS.SCANNING)}
+                onDiscard={() => {
+                  setScanError(null)
+                  setScannedBarcodeId('')
+                  lodgementSuccessSyncedBarcodeRef.current = null
+                  setDetectedParcel(null)
+                  resetAddresses()
+                  setCurrentStep(LODGEMENT_STEPS.WELCOME)
+                }}
+                detectedParcel={detectedParcel}
+                sender={sender}
+                recipient={recipient}
+              />
             )}
             {currentStep === LODGEMENT_STEPS.SCANNING && (
               <ScanningStep
                 key={LODGEMENT_STEPS.SCANNING}
                 onSuccess={() => {
+                  const scanningTime = new Date().toISOString()
+                  void updateLodgementTransaction({
+                    parcelStatus: 'LODGEMENT_SCANNING',
+                    scanningTime
+                  })
                   setCurrentStep(LODGEMENT_STEPS.SUCCESS)
                 }} />
             )}
             {currentStep === LODGEMENT_STEPS.SUCCESS && (
-              <SuccessStep key={LODGEMENT_STEPS.SUCCESS} onReset={() => setCurrentStep(LODGEMENT_STEPS.WELCOME)} />
+              <SuccessStep
+                key={LODGEMENT_STEPS.SUCCESS}
+                onReset={() => {
+                  setScanError(null)
+                  setScannedBarcodeId('')
+                  lodgementSuccessSyncedBarcodeRef.current = null
+                  setDetectedParcel(null)
+                  resetAddresses()
+                  setCurrentStep(LODGEMENT_STEPS.WELCOME)
+                }}
+              />
             )}
             
           </AnimatePresence>

@@ -73,9 +73,11 @@
           <td>${esc(t.recipientName)}</td>
           <td>${esc(t.recipientAddress)}</td>
           <td>${esc(t.parcelSize)}</td>
+          <td>${esc(t.parcelActualDimensions) || '—'}</td>
           <td>${esc(t.parcelWeight)} lbs</td>
           <td>$${esc(t.parcelPrice)}</td>
           <td>${statusPill(t.parcelStatus)}</td>
+          <td>${esc(formatDate(t.lodgementTime))}</td>
           <td>${esc(formatDate(t.timestamp))}</td>
         </tr>
       `).join('')
@@ -91,9 +93,11 @@
               <th>Recipient</th>
               <th>Recipient Address</th>
               <th>Size</th>
+              <th>Actual Dimensions</th>
               <th>Weight</th>
               <th>Price</th>
               <th>Status</th>
+              <th>Lodgement Time</th>
               <th>Timestamp</th>
             </tr>
           </thead>

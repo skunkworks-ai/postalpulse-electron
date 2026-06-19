@@ -1,4 +1,5 @@
 {
+  "melpostBookingServerURL": "http://localhost:18080",
   "unisonAddressURL": "http://localhost:8080",
   "realSenseAddressURL": "ws://localhost:9001",
   "casPD2AddressURL": "http://localhost:3030",

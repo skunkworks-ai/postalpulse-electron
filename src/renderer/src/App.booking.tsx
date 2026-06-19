@@ -30,6 +30,7 @@ interface BookingTransactionRecord {
   verifyTime: string
   paymentTime: string
   scanningTime: string
+  lodgementTime: string
   successTime: string
   timestamp: string
   senderName: string
@@ -38,6 +39,7 @@ interface BookingTransactionRecord {
   recipientName: string
   recipientAddress: string
   parcelSize: string
+  parcelActualDimensions: string
   parcelWeight: number
   parcelPrice: number
   loggedAt?: string
@@ -63,6 +65,7 @@ const createBookingTransaction = (): BookingTransactionRecord => {
     verifyTime: '',
     paymentTime: '',
     scanningTime: '',
+    lodgementTime: '',
     successTime: '',
     timestamp: startTransactionTime,
     senderName: '',
@@ -71,6 +74,7 @@ const createBookingTransaction = (): BookingTransactionRecord => {
     recipientName: '',
     recipientAddress: '',
     parcelSize: '',
+    parcelActualDimensions: '',
     parcelWeight: 0,
     parcelPrice: 0
   }
@@ -152,6 +156,7 @@ const BookingApp = (): React.JSX.Element => {
       recipientName: recipient.name,
       recipientAddress: formatAddress(recipient),
       parcelSize: detectedParcel?.size ?? '',
+      parcelActualDimensions: detectedParcel?.actualDimensions ?? '',
       parcelWeight: detectedParcel?.weight ?? 0,
       parcelPrice: detectedParcel?.price ?? 0
     }
@@ -182,6 +187,7 @@ const BookingApp = (): React.JSX.Element => {
       recipientName: recipient.name,
       recipientAddress: recipient.name ? formatAddress(recipient) : '',
       parcelSize: detectedParcel?.size ?? transactionRef.current.parcelSize,
+      parcelActualDimensions: detectedParcel?.actualDimensions ?? transactionRef.current.parcelActualDimensions,
       parcelWeight: detectedParcel?.weight ?? transactionRef.current.parcelWeight,
       parcelPrice: detectedParcel?.price ?? transactionRef.current.parcelPrice
     }
@@ -398,6 +404,7 @@ const BookingApp = (): React.JSX.Element => {
                   setDetectedParcel(parcel)
                   updateBookingTransaction({
                     parcelSize: parcel.size,
+                    parcelActualDimensions: parcel.actualDimensions,
                     parcelWeight: parcel.weight,
                     parcelPrice: parcel.price
                   })

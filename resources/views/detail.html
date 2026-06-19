@@ -70,6 +70,7 @@
       ['Recipient Name',    t.recipientName],
       ['Recipient Address', t.recipientAddress],
       ['Parcel Size',       t.parcelSize],
+      ['Actual Dimensions', t.parcelActualDimensions],
       ['Parcel Weight',     `${t.parcelWeight} lbs`],
       ['Parcel Price',      `$${t.parcelPrice}`],
       ['Start Time',        formatDate(t.startTransactionTime)],
@@ -81,6 +82,8 @@
       ['Verify Time',       formatDate(t.verifyTime)],
       ['Payment Time',      formatDate(t.paymentTime)],
       ['Success Time',      formatDate(t.successTime)],
+      ['Scanning Time',     formatDate(t.scanningTime)],
+      ['Lodgement Time',    formatDate(t.lodgementTime)],
       ['Logged At',         formatDate(t.timestamp)],
     ]
 

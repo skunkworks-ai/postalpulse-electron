@@ -1,9 +1,10 @@
 import React, { useState } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import { motion } from 'motion/react'
-import { Settings, Save, X, CheckCircle2, Camera, Weight, Globe, Type } from 'lucide-react'
+import { Settings, Save, X, CheckCircle2, Camera, Weight, Globe, Type, Server } from 'lucide-react'
 import { RootState } from '../../store'
 import {
+  setMelpostBookingServerURL,
   setUnisonAddressURL,
   setRealSenseAddressURL,
   setCasPD2AddressURL,
@@ -25,6 +26,12 @@ interface Field {
 }
 
 const FIELDS: Field[] = [
+  {
+    label: 'Melpost Booking Server',
+    key: 'melpostBookingServerURL',
+    icon: <Server size={18} />,
+    description: 'Core booking API gateway'
+  },
   {
     label: 'Camera / Unison',
     key: 'unisonAddressURL',
@@ -62,6 +69,7 @@ const ConfigPage: React.FC<ConfigPageProps> = ({ onClose }) => {
   const config = useSelector((state: RootState) => state.config)
 
   const [values, setValues] = useState({
+    melpostBookingServerURL: config.melpostBookingServerURL,
     unisonAddressURL: config.unisonAddressURL,
     realSenseAddressURL: config.realSenseAddressURL,
     casPD2AddressURL: config.casPD2AddressURL,
@@ -73,6 +81,7 @@ const ConfigPage: React.FC<ConfigPageProps> = ({ onClose }) => {
   const [saved, setSaved] = useState(false)
 
   const handleSave = (): void => {
+    dispatch(setMelpostBookingServerURL(values.melpostBookingServerURL))
     dispatch(setUnisonAddressURL(values.unisonAddressURL))
     dispatch(setRealSenseAddressURL(values.realSenseAddressURL))
     dispatch(setCasPD2AddressURL(values.casPD2AddressURL))

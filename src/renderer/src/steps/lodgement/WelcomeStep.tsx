@@ -6,9 +6,10 @@ import en from '../../translations/lodgement.en'
 
 interface WelcomeStepProps {
   onStart: () => void
+  scanError?: string | null
 }
 
-const WelcomeStep = ({ onStart }: WelcomeStepProps): React.JSX.Element => (
+const WelcomeStep = ({ onStart, scanError }: WelcomeStepProps): React.JSX.Element => (
   <motion.div
     initial={{ opacity: 0, scale: 0.98 }}
     animate={{ opacity: 1, scale: 1 }}
@@ -76,9 +77,14 @@ const WelcomeStep = ({ onStart }: WelcomeStepProps): React.JSX.Element => (
         >
           <Scan strokeWidth={3} /> {en.steps.welcome.startShipment}
         </KioskButton>
-        <p className="text-slate-500 text-sm mt-4 font-medium">
+        {/* <p className="text-slate-500 text-sm mt-4 font-medium line-through decoration-slate-300">
           {en.steps.welcome.startShipmentSubtitle}
-        </p>
+        </p> */}
+        {scanError && (
+          <p className="mt-3 text-sm font-bold text-(--pp-danger-dark)">
+            {scanError}
+          </p>
+        )}
     </div>
   </motion.div>
 )

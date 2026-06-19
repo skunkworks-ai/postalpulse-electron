@@ -15,6 +15,7 @@ export interface TransactionRecord {
   verifyTime?: string
   paymentTime?: string
   scanningTime?: string
+  lodgementTime?: string
   successTime?: string
   timestamp: string
   senderName: string
@@ -23,6 +24,7 @@ export interface TransactionRecord {
   recipientName: string
   recipientAddress: string
   parcelSize: string
+  parcelActualDimensions?: string
   parcelWeight: number
   parcelPrice: number
 }
@@ -39,7 +41,7 @@ export function getTransactionCsvPath(): string {
  * Get CSV headers
  */
 function getCSVHeaders(): string {
-  return 'UUID,Barcode ID,Start Transaction Time,End Transaction Time,Parcel Status,Detection Time,Confirmation Time,Sender Time,Recipient Time,Verify Time,Payment Time,Scanning Time,Success Time,Timestamp,Sender Name,Sender Email,Sender Address,Recipient Name,Recipient Address,Parcel Size,Parcel Weight (lbs),Parcel Price ($)\n'
+  return 'UUID,Barcode ID,Start Transaction Time,End Transaction Time,Parcel Status,Detection Time,Confirmation Time,Sender Time,Recipient Time,Verify Time,Payment Time,Scanning Time,Lodgement Time,Success Time,Timestamp,Sender Name,Sender Email,Sender Address,Recipient Name,Recipient Address,Parcel Size,Parcel Weight (lbs),Parcel Price ($),Parcel Actual Dimensions\n'
 }
 
 /**
@@ -73,6 +75,7 @@ function recordToCSVRow(record: TransactionRecord): string {
     record.verifyTime,
     record.paymentTime,
     record.scanningTime,
+    record.lodgementTime,
     record.successTime,
     record.timestamp,
     record.senderName,
@@ -82,7 +85,8 @@ function recordToCSVRow(record: TransactionRecord): string {
     record.recipientAddress,
     record.parcelSize,
     record.parcelWeight,
-    record.parcelPrice
+    record.parcelPrice,
+    record.parcelActualDimensions
   ]
   return fields.map(escapeCSVField).join(',') + '\n'
 }

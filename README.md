@@ -175,7 +175,7 @@ Access the config overlay by tapping the logo **5 times** within 1.5 seconds. Se
 
 | Setting | Description |
 |---|---|
-| Backend Server URL | Core API gateway |
+| Melpost Booking Server URL | Core booking API gateway |
 | Camera / Unison URL | RGB + depth camera stream |
 | Dimensioning / RealSense URL | Parcel volumetric service |
 | Scale / CasPD2 URL | Integrated scale weight |

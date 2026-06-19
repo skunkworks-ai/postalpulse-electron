@@ -2,6 +2,8 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import defaultConfig from './config.json'
 
 export interface ConfigState {
+  /** Core booking backend / Melpost booking server */
+  melpostBookingServerURL: string
   /** Camera / Unison service */
   unisonAddressURL: string
   /** Depth-camera / RealSense dimensioning service */
@@ -48,6 +50,9 @@ const configSlice = createSlice({
     setUnisonAddressURL(state, action: PayloadAction<string>) {
       state.unisonAddressURL = action.payload
     },
+    setMelpostBookingServerURL(state, action: PayloadAction<string>) {
+      state.melpostBookingServerURL = action.payload
+    },
     setRealSenseAddressURL(state, action: PayloadAction<string>) {
       state.realSenseAddressURL = action.payload
     },
@@ -68,6 +73,7 @@ const configSlice = createSlice({
 
 export const {
   replaceConfig,
+  setMelpostBookingServerURL,
   setUnisonAddressURL,
   setRealSenseAddressURL,
   setCasPD2AddressURL,

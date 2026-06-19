@@ -5,6 +5,7 @@ interface Window {
     getConfig: () => Promise<unknown>
     setConfig: (config: unknown) => Promise<unknown>
     googleMapsGet: (opts: { url: string; method?: string; headers?: Record<string, string>; body?: string }) => Promise<unknown>
+    bookingServerGet: (opts: { url: string; method?: string; headers?: Record<string, string>; body?: string }) => Promise<unknown>
   }
 }
 

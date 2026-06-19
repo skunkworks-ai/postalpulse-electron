@@ -191,6 +191,35 @@ app.whenReady().then(() => {
     })
   })
 
+  // Proxy booking server requests through the main process to avoid
+  // renderer-side CORS restrictions when calling external APIs.
+  ipcMain.handle('booking-server-get', (_event, opts: MapsRequestOpts): Promise<unknown> => {
+    return new Promise((resolve, reject) => {
+      const { url, method = 'GET', headers = {}, body } = opts
+      const request = net.request({ url, method })
+      for (const [key, val] of Object.entries(headers)) {
+        request.setHeader(key, val)
+      }
+
+      let responseBody = ''
+      request.on('response', (response) => {
+        response.on('data', (chunk) => {
+          responseBody += chunk.toString()
+        })
+        response.on('end', () => {
+          try {
+            resolve(JSON.parse(responseBody))
+          } catch {
+            reject(new Error('Failed to parse booking server response'))
+          }
+        })
+      })
+      request.on('error', (err) => reject(err))
+      if (body) request.write(body)
+      request.end()
+    })
+  })
+
   // Transaction logging
   ipcMain.handle('log-transaction', (_event, record: TransactionRecord) => {
     logTransaction(record)

@@ -20,8 +20,8 @@ const en = {
       headingPrefix: 'Drop It',
       headingHighlight: 'Securely.',
       description: 'Secure automated scanning, physical measurement, and barcode validation',
-      startShipment: 'Tap to Start Process',
-      startShipmentSubtitle: 'Tapping will simulate scanning a parcel and retrieve the booking details',
+      startShipment: 'Scan to Start Process',
+      startShipmentSubtitle: 'Scanning will simulate scanning a parcel and retrieve the booking details',
     },
     detection: {
       headingPrefix: 'Validating Barcode',

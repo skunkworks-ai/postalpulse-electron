@@ -1,25 +1,82 @@
 import React, { useEffect } from 'react'
+import { useSelector } from 'react-redux'
 import { RefreshCcw, HardDrive } from 'lucide-react'
 import { motion } from 'motion/react'
-import PriorityStripes from '../../components/PriorityStripes'
+import type { RootState } from '../../store'
 import en from '../../translations/lodgement.en'
 
 interface DetectionStepProps {
-  onSuccess: () => void
+  barcodeId: string
+  onSuccess: (transaction: LodgementTransaction) => void
+  onFailure: (message: string) => void
 }
 
-const DetectionStep = ({ onSuccess }: DetectionStepProps): React.JSX.Element => {
+interface LodgementTransaction {
+  senderName?: string
+  senderEmail?: string
+  senderAddress?: string
+  recipientName?: string
+  recipientAddress?: string
+  parcelSize?: string
+  parcelActualDimensions?: string
+  parcelWeight?: string | number
+  parcelPrice?: string | number
+}
+
+interface BarcodeLookupResponse {
+  transaction?: LodgementTransaction
+  error?: string
+}
+
+const DetectionStep = ({ barcodeId, onSuccess, onFailure }: DetectionStepProps): React.JSX.Element => {
+  const melpostBookingServerURL = useSelector((state: RootState) => state.config.melpostBookingServerURL)
   const copy = en.steps.detection
 
   useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      onSuccess()
-    }, 1500)
+    let cancelled = false
+
+    const lookupByBarcode = async (): Promise<void> => {
+      if (!barcodeId.trim()) {
+        onFailure('No barcode scanned. Please scan a valid barcode to continue.')
+        return
+      }
+
+      const baseURL = melpostBookingServerURL.trim().replace(/\/+$/, '')
+      if (!baseURL) {
+        onFailure('Booking server URL is not configured. Please contact support.')
+        return
+      }
+
+      try {
+        const requestURL = `${baseURL}/barcode_id/${encodeURIComponent(barcodeId.trim())}?format=json`
+        const bookingGet = window.api.bookingServerGet ?? window.api.googleMapsGet
+        const payload = (await bookingGet({
+          url: requestURL,
+          method: 'GET'
+        })) as BarcodeLookupResponse
+
+        if (cancelled) return
+
+        if (payload.error || !payload.transaction) {
+          onFailure(`Booking not found for barcode ${barcodeId.trim()}. Please scan again.`)
+          return
+        }
+
+        onSuccess(payload.transaction)
+      } catch (error) {
+        console.error('Failed barcode lookup:', error)
+        if (!cancelled) {
+          onFailure('Failed to validate barcode. Please scan again.')
+        }
+      }
+    }
+
+    void lookupByBarcode()
 
     return () => {
-      window.clearTimeout(timeoutId)
+      cancelled = true
     }
-  }, [onSuccess])
+  }, [barcodeId, melpostBookingServerURL, onFailure, onSuccess])
 
   return (
     <motion.div
