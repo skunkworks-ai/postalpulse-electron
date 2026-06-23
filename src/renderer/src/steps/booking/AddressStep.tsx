@@ -10,6 +10,13 @@ import type { AddressRecord, AddressSuggestion } from '../../types'
 import type { RootState } from '../../store'
 import en from '../../translations/booking.en'
 
+const PERSON_FULL_NAME_REGEX = /^[A-Za-zÀ-ÖØ-öø-ÿ]+(?:[.'’-][A-Za-zÀ-ÖØ-öø-ÿ]+)*(?:\s+[A-Za-zÀ-ÖØ-öø-ÿ]+(?:[.'’-][A-Za-zÀ-ÖØ-öø-ÿ]+)*)+$/
+
+const isPersonFullName = (name: string): boolean => {
+  const normalized = name.trim().replace(/\s+/g, ' ')
+  return PERSON_FULL_NAME_REGEX.test(normalized)
+}
+
 interface AddressStepProps {
   currentStep: string
   sender: AddressRecord
@@ -19,6 +26,7 @@ interface AddressStepProps {
   onBack: () => void
   onNext: () => void
   initialManualEntry?: boolean
+  onManualEntryChange?: (isManualEntry: boolean) => void
 }
 
 const AddressStep = ({
@@ -29,7 +37,8 @@ const AddressStep = ({
   setRecipient,
   onBack,
   onNext,
-  initialManualEntry = false
+  initialManualEntry = false,
+  onManualEntryChange
 }: AddressStepProps): React.JSX.Element => {
   const [isManualEntry, setIsManualEntry] = useState(initialManualEntry)
   const [addressSearch, setAddressSearch] = useState('')
@@ -50,6 +59,10 @@ const AddressStep = ({
   }, [suggestions.length])
 
   useEffect(() => {
+    onManualEntryChange?.(isManualEntry)
+  }, [isManualEntry])
+
+  useEffect(() => {
     if (suggestions.length === 0) return
     const handleClickOutside = (e: MouseEvent): void => {
       if (
@@ -63,6 +76,7 @@ const AddressStep = ({
   }, [suggestions.length])
 
   const googleMapsApiKey = useSelector((state: RootState) => state.config.googleMapsApiKey)
+  const onlyPersonNames = useSelector((state: RootState) => state.config.onlypersonnames)
   const hasGoogleMapsApiKey = Boolean(googleMapsApiKey?.trim())
   const shouldBypassValidation = !MOCK_GOOGLE_MAPS && !hasGoogleMapsApiKey
 
@@ -71,9 +85,11 @@ const AddressStep = ({
   const setCurrent = isSender ? setSender : setRecipient
   const copy = isSender ? en.steps.address.sender : en.steps.address.recipient
   const isNameEmpty = !current.name.trim()
+  const isPersonNameInvalid = onlyPersonNames && !isNameEmpty && !isPersonFullName(current.name)
   const isAddressEmpty = !current.street.trim()
   const isProceedDisabled =
     isNameEmpty ||
+    isPersonNameInvalid ||
     isAddressEmpty ||
     (!shouldBypassValidation && !current.isValidated) ||
     isValidating
@@ -81,6 +97,7 @@ const AddressStep = ({
   const handleAddressSearch = (value: string): void => {
     setAddressSearch(value)
     setSuggestions([])
+    setCurrent((prev) => ({ ...prev, isValidated: false }))
 
     if (value.length < 3) return
 
@@ -325,6 +342,14 @@ const AddressStep = ({
               placeholder={copy.namePlaceholder}
               className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 focus:ring-2 focus:ring-indigo-600/10 focus:border-indigo-600/30 focus:outline-none font-semibold text-slate-900 transition-all placeholder:text-slate-300"
             />
+            {isPersonNameInvalid && (
+              <div className="p-3 bg-amber-50 border border-amber-100 rounded-xl flex items-center gap-2">
+                <AlertCircle className="text-amber-500" size={14} />
+                <span className="text-amber-700 font-bold text-[10px] uppercase tracking-widest">
+                  Full legal person name required (first and last name).
+                </span>
+              </div>
+            )}
           </div>
 
           {!isManualEntry ? (

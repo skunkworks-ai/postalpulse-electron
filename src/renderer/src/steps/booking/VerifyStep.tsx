@@ -111,7 +111,7 @@ const VerifyStep = ({
           <div className="absolute top-0 -right-40 p-8 opacity-10">
             <CreditCard size={300} />
           </div>
-          <div className="flex items-center gap-10 relative z-10 justify-between">
+          <div className="flex items-center gap-20 relative z-10 justify-center">
             <div className="space-y-1.5 text-center xl:text-left">
               <p className="text-[10px] font-bold text-indigo-100 uppercase tracking-widest opacity-80">
                 {copy.class}
@@ -128,14 +128,14 @@ const VerifyStep = ({
               </p>
             </div>
             <div className="w-px h-10 bg-white/20 hidden xl:block" />
-            <div className="space-y-1.5 text-center xl:text-left">
+            {/* <div className="space-y-1.5 text-center xl:text-left">
               <p className="text-[10px] font-bold text-indigo-100 uppercase tracking-widest opacity-80">
                 Box Dimensions
               </p>
               <p className="whitespace-nowrap text-sm font-black">
                 {detectedParcel?.dimensions}
               </p>
-            </div>
+            </div> */}
             <div className="space-y-1.5 text-center xl:text-left">
               <p className="text-[10px] font-bold text-indigo-100 uppercase tracking-widest opacity-80">
                 {copy.payload}

@@ -26,7 +26,47 @@ const App = ({ appName = 'MeldPOST Booking' }: AppProps): React.JSX.Element => {
   const themeColors = useSelector((state: RootState) => state.config.colors)
   const [currentStep, setCurrentStep] = useState(STEPS.WELCOME)
   const [detectedParcel, setDetectedParcel] = useState<ParcelData | null>(null)
-  const [manualAddressEntry, setManualAddressEntry] = useState(false)
+  const [manualAddressEntry, setManualAddressEntry] = useState({ sender: false, recipient: false })
+
+  const setManualAddressEntryForStep = (step: string, isManualEntry: boolean): void => {
+    const key = step === STEPS.SENDER ? 'sender' : 'recipient'
+    setManualAddressEntry((prev) => {
+      if (prev[key] === isManualEntry) return prev
+      return {
+        ...prev,
+        [key]: isManualEntry
+      }
+    })
+  }
+
+  const resetManualAddressEntry = (): void => {
+    setManualAddressEntry({ sender: false, recipient: false })
+  }
+
+  const clearAddressForStep = (step: string): void => {
+    if (step === STEPS.SENDER) {
+      setSender((prev) => ({
+        ...prev,
+        name: '',
+        street: '',
+        city: '',
+        state: '',
+        zip: '',
+        isValidated: false
+      }))
+    } else {
+      setRecipient((prev) => ({
+        ...prev,
+        name: '',
+        street: '',
+        city: '',
+        state: '',
+        zip: '',
+        isValidated: false
+      }))
+    }
+    setManualAddressEntryForStep(step, false)
+  }
 
   // Config page state
   const [showConfig, setShowConfig] = useState(false)
@@ -79,6 +119,7 @@ const App = ({ appName = 'MeldPOST Booking' }: AppProps): React.JSX.Element => {
   const resetAddresses = (): void => {
     setSender({ name: '', email: '', street: '', city: '', state: '', zip: '', isValidated: false })
     setRecipient({ name: '', street: '', city: '', state: '', zip: '', isValidated: false })
+    resetManualAddressEntry()
   }
 
   const resetApp = (): void => {
@@ -246,10 +287,11 @@ const App = ({ appName = 'MeldPOST Booking' }: AppProps): React.JSX.Element => {
                 setSender={setSender}
                 recipient={recipient}
                 setRecipient={setRecipient}
-                initialManualEntry={manualAddressEntry}
+                initialManualEntry={currentStep === STEPS.SENDER ? manualAddressEntry.sender : manualAddressEntry.recipient}
+                onManualEntryChange={(isManualEntry) => setManualAddressEntryForStep(currentStep, isManualEntry)}
                 onBack={() => {
                   if (currentStep === STEPS.SENDER) {
-                    setManualAddressEntry(false)
+                    clearAddressForStep(STEPS.SENDER)
                     setCurrentStep(STEPS.CONFIRMATION)
                   } else {
                     setCurrentStep(STEPS.SENDER)
@@ -259,7 +301,6 @@ const App = ({ appName = 'MeldPOST Booking' }: AppProps): React.JSX.Element => {
                   if (currentStep === STEPS.SENDER) {
                     setCurrentStep(STEPS.RECIPIENT)
                   } else {
-                    setManualAddressEntry(false)
                     setCurrentStep(STEPS.VERIFY)
                   }
                 }}
@@ -274,8 +315,8 @@ const App = ({ appName = 'MeldPOST Booking' }: AppProps): React.JSX.Element => {
                 detectedParcel={detectedParcel}
                 onBack={() => setCurrentStep(STEPS.RECIPIENT)}
                 onNext={() => setCurrentStep(STEPS.PAYMENT)}
-                onEditSender={() => { setManualAddressEntry(true); setCurrentStep(STEPS.SENDER) }}
-                onEditRecipient={() => { setManualAddressEntry(true); setCurrentStep(STEPS.RECIPIENT) }}
+                onEditSender={() => { setManualAddressEntryForStep(STEPS.SENDER, true); setCurrentStep(STEPS.SENDER) }}
+                onEditRecipient={() => { setManualAddressEntryForStep(STEPS.RECIPIENT, true); setCurrentStep(STEPS.RECIPIENT) }}
               />
             )}
 
@@ -289,7 +330,7 @@ const App = ({ appName = 'MeldPOST Booking' }: AppProps): React.JSX.Element => {
             )}
 
             {currentStep === STEPS.SUCCESS && (
-              <SuccessStep key={STEPS.SUCCESS} onReset={resetApp} />
+              <SuccessStep key={STEPS.SUCCESS} barcodeId="" onReset={resetApp} />
             )}
           </AnimatePresence>
         </div>

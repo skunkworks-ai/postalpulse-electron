@@ -5,6 +5,7 @@
   "casPD2AddressURL": "http://localhost:3030",
   "unit": "kg",
   "googleMapsApiKey": "",
+  "onlypersonnames": true,
   "headerTitle": "MeldPOST",
   "colors": {
     "brandPrimary": "#1565BF",

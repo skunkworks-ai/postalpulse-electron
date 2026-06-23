@@ -29,7 +29,8 @@ const STEP_ORDER = [
 ]
 
 const StepIndicator = ({ currentStep }: StepIndicatorProps): React.JSX.Element => {
-  const currentStepIndex = STEP_ORDER.indexOf(currentStep)
+  const isSuccessStep = currentStep === STEPS.SUCCESS
+  const currentStepIndex = isSuccessStep ? STEP_ORDER.length : STEP_ORDER.indexOf(currentStep)
 
   if (currentStep === STEPS.WELCOME) return <></> // Hide step indicator on welcome step;
 
@@ -38,7 +39,7 @@ const StepIndicator = ({ currentStep }: StepIndicatorProps): React.JSX.Element =
       <div className="max-w-7xl mx-auto px-4 sm:px-8 flex items-center justify-center gap-3 sm:gap-6 overflow-x-auto">
         {STEP_ORDER.map((step, index) => {
           const Icon = STEP_ICONS[step]
-          const isActive = index === currentStepIndex
+          const isActive = !isSuccessStep && index === currentStepIndex
           const isCompleted = index < currentStepIndex
           const isUpcoming = index > currentStepIndex
 

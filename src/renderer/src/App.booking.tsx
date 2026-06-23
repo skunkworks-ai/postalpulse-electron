@@ -87,10 +87,50 @@ const BookingApp = (): React.JSX.Element => {
   const allowUnvalidatedAddress = !MOCK_GOOGLE_MAPS && !googleMapsApiKey?.trim()
   const [currentStep, setCurrentStep] = useState(STEPS.WELCOME)
   const [detectedParcel, setDetectedParcel] = useState<ParcelData | null>(null)
-  const [manualAddressEntry, setManualAddressEntry] = useState(false)
+  const [manualAddressEntry, setManualAddressEntry] = useState({ sender: false, recipient: false })
   const [activeBarcodeId, setActiveBarcodeId] = useState('')
   const transactionRef = useRef<BookingTransactionRecord | null>(null)
   const loggingInFlightRef = useRef(false)
+
+  const setManualAddressEntryForStep = (step: string, isManualEntry: boolean): void => {
+    const key = step === STEPS.SENDER ? 'sender' : 'recipient'
+    setManualAddressEntry((prev) => {
+      if (prev[key] === isManualEntry) return prev
+      return {
+        ...prev,
+        [key]: isManualEntry
+      }
+    })
+  }
+
+  const resetManualAddressEntry = (): void => {
+    setManualAddressEntry({ sender: false, recipient: false })
+  }
+
+  const clearAddressForStep = (step: string): void => {
+    if (step === STEPS.SENDER) {
+      setSender((prev) => ({
+        ...prev,
+        name: '',
+        street: '',
+        city: '',
+        state: '',
+        zip: '',
+        isValidated: false
+      }))
+    } else {
+      setRecipient((prev) => ({
+        ...prev,
+        name: '',
+        street: '',
+        city: '',
+        state: '',
+        zip: '',
+        isValidated: false
+      }))
+    }
+    setManualAddressEntryForStep(step, false)
+  }
 
   const startBookingTransaction = (): void => {
     const transaction = createBookingTransaction()
@@ -261,6 +301,7 @@ const BookingApp = (): React.JSX.Element => {
   const resetAddresses = (): void => {
     setSender({ name: '', email: '', street: '', city: '', state: '', zip: '', isValidated: false })
     setRecipient({ name: '', street: '', city: '', state: '', zip: '', isValidated: false })
+    resetManualAddressEntry()
   }
 
   const resetApp = (): void => {
@@ -451,10 +492,11 @@ const BookingApp = (): React.JSX.Element => {
                 setSender={setSender}
                 recipient={recipient}
                 setRecipient={setRecipient}
-                initialManualEntry={manualAddressEntry}
+                initialManualEntry={currentStep === STEPS.SENDER ? manualAddressEntry.sender : manualAddressEntry.recipient}
+                onManualEntryChange={(isManualEntry) => setManualAddressEntryForStep(currentStep, isManualEntry)}
                 onBack={() => {
                   if (currentStep === STEPS.SENDER) {
-                    setManualAddressEntry(false)
+                    clearAddressForStep(STEPS.SENDER)
                     setCurrentStep(STEPS.CONFIRMATION)
                   } else {
                     setCurrentStep(STEPS.SENDER)
@@ -466,7 +508,6 @@ const BookingApp = (): React.JSX.Element => {
                     setCurrentStep(STEPS.RECIPIENT)
                   } else {
                     markBookingStatus(PARCEL_STATUSES.VERIFY)
-                    setManualAddressEntry(false)
                     setCurrentStep(STEPS.VERIFY)
                   }
                 }}
@@ -486,11 +527,11 @@ const BookingApp = (): React.JSX.Element => {
                   setCurrentStep(STEPS.PAYMENT)
                 }}
                 onEditSender={() => {
-                  setManualAddressEntry(true)
+                  setManualAddressEntryForStep(STEPS.SENDER, true)
                   setCurrentStep(STEPS.SENDER)
                 }}
                 onEditRecipient={() => {
-                  setManualAddressEntry(true)
+                  setManualAddressEntryForStep(STEPS.RECIPIENT, true)
                   setCurrentStep(STEPS.RECIPIENT)
                 }}
               />
@@ -501,7 +542,6 @@ const BookingApp = (): React.JSX.Element => {
                 key={STEPS.PAYMENT}
                 detectedParcel={detectedParcel}
                 onSuccess={async () => {
-                  markBookingStatus(PARCEL_STATUSES.PAYMENT)
                   await finalizeBookingTransaction()
                   setCurrentStep(STEPS.SUCCESS)
                 }}
