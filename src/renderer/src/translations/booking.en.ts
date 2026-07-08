@@ -73,7 +73,8 @@ const en = {
         validated: 'Address is CASS Validated',
         notValidated: 'Address Not CASS Validated',
         back: 'Return',
-        next: 'Confirm Sender Details'
+        next: 'Confirm Sender Details',
+        nameError: 'Full legal person name required (first and last name).'
       },
       recipient: {
         title: 'Recipient Details',
@@ -95,7 +96,8 @@ const en = {
         validated: 'Address is CASS Validated',
         notValidated: 'Address Not CASS Validated',
         back: 'Return',
-        next: 'Confirm Recipient Details'
+        next: 'Confirm Recipient Details',
+        nameError: 'Full legal person name required (first and last name).'
       }
     },
     verify: {
@@ -112,7 +114,7 @@ const en = {
       payload: 'Payload',
       authorizedRate: 'Authorized Rate',
       back: 'Back',
-      executeTransaction: 'Procceed to Payment'
+      executeTransaction: 'Proceed to Payment'
     },
     payment: {
       generatingTag: 'Generating Tag',

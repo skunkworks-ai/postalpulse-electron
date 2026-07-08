@@ -10,11 +10,84 @@ import type { AddressRecord, AddressSuggestion } from '../../types'
 import type { RootState } from '../../store'
 import en from '../../translations/booking.en'
 
-const PERSON_FULL_NAME_REGEX = /^[A-Za-zÀ-ÖØ-öø-ÿ]+(?:[.'’-][A-Za-zÀ-ÖØ-öø-ÿ]+)*(?:\s+[A-Za-zÀ-ÖØ-öø-ÿ]+(?:[.'’-][A-Za-zÀ-ÖØ-öø-ÿ]+)*)+$/
+const MAX_NAME_LENGTH = 100
 
-const isPersonFullName = (name: string): boolean => {
+export const isPersonFullName = (name: string): boolean => {
+
+  console.log(name)
+
+   if (!name) {
+    return false
+  }
+
+  // Reject leading/trailing spaces
+  if (name !== name.trim()) {
+    return false
+  }
+
+  // Reject spaces-only
+  if (!name.trim()) {
+    return false
+  }
+
+  if (/\s{2,}/.test(name)) {
+    return false
+  }
+
   const normalized = name.trim().replace(/\s+/g, ' ')
-  return PERSON_FULL_NAME_REGEX.test(normalized)
+
+  if (normalized.length > MAX_NAME_LENGTH) {
+    return false
+  }
+
+  // No numbers
+  if (/\d/.test(normalized)) {
+    return false
+  }
+
+  // Allow letters, spaces, apostrophes, hyphens, and periods
+  if (!/^[A-Za-zÀ-ÖØ-öø-ÿ\s.'’-]+$/.test(normalized)) {
+    return false
+  }
+
+  const parts = normalized.split(' ')
+
+  // Must have at least first and last name
+  if (parts.length < 2) {
+    return false
+  }
+
+  const cleanPart = (part: string) =>
+    part.replace(/[.'’-]/g, '')
+
+  const firstName = cleanPart(parts[0])
+  const lastName = cleanPart(parts[parts.length - 1])
+
+  // First and last names must be at least 2 letters
+  if (firstName.length < 2 || lastName.length < 2) {
+    return false
+  }
+
+  // Validate every part
+  for (const part of parts) {
+    // Allow middle initials like A or A.
+    if (/^[A-Za-zÀ-ÖØ-öø-ÿ]\.?$/.test(part)) {
+      continue
+    }
+
+    // Otherwise require at least 2 letters
+    if (cleanPart(part).length < 2) {
+      return false
+    }
+
+    if (
+      !/^[A-Za-zÀ-ÖØ-öø-ÿ]+(?:[.'’-][A-Za-zÀ-ÖØ-öø-ÿ]+)*$/.test(part)
+    ) {
+      return false
+    }
+  }
+
+  return true
 }
 
 interface AddressStepProps {
@@ -295,6 +368,19 @@ const AddressStep = ({
     setIsManualEntry(false)
   }
 
+  useEffect(() => {
+    const toTitleCase = (str: string): string =>
+      str.toLowerCase().replace(/\b[a-z]/g, (c) => c.toUpperCase())
+    const formatSearch = (addr: AddressRecord): string =>
+      `${toTitleCase(addr.street)}, ${toTitleCase(addr.city)}, ${addr.state.toUpperCase()} ${addr.zip}`.trim()
+    if(currentStep === STEPS.SENDER && sender.name && sender.street && sender.city && sender.state && sender.zip) {
+      setAddressSearch(formatSearch(sender))
+    }
+    if(currentStep === STEPS.RECIPIENT && recipient.name && recipient.street && recipient.city && recipient.state && recipient.zip) {
+      setAddressSearch(formatSearch(recipient))
+    }
+  }, [])
+
   return (
     <motion.div
       initial={{ opacity: 0, x: 30 }}
@@ -346,7 +432,7 @@ const AddressStep = ({
               <div className="p-3 bg-amber-50 border border-amber-100 rounded-xl flex items-center gap-2">
                 <AlertCircle className="text-amber-500" size={14} />
                 <span className="text-amber-700 font-bold text-[10px] uppercase tracking-widest">
-                  Full legal person name required (first and last name).
+                  {copy.nameError}
                 </span>
               </div>
             )}

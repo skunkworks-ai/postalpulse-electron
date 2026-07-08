@@ -30,6 +30,10 @@ interface RealSenseMessage {
 const METER_TO_INCH = 39.37007874
 const INCH_TO_METER = 0.0254
 const REALSENSE_TIMEOUT_MS = 5000
+const DETECTION_DURATION_MS = 2000
+const DETECTION_PROGRESS_INTERVAL_MS = 100
+const DETECTION_PROGRESS_STEP =
+  100 / (DETECTION_DURATION_MS / DETECTION_PROGRESS_INTERVAL_MS)
 
 const toWebSocketURL = (url: string): string => {
   if (url.startsWith('ws://') || url.startsWith('wss://')) {
@@ -199,9 +203,9 @@ const DetectionStep = ({ onSuccess }: DetectionStepProps): React.JSX.Element => 
           handleDetectionSuccess()
           return 100
         }
-        return prev + 2
+        return prev + DETECTION_PROGRESS_STEP
       })
-    }, 100)
+    }, DETECTION_PROGRESS_INTERVAL_MS)
     return () => clearInterval(interval)
   }, [detectionError])
 

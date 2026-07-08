@@ -83,6 +83,10 @@ tbody tr:hover td { background: #f8fafc; }
 .pill-red    { background: #fee2e2; color: #b91c1c; }
 .pill-gray   { background: #f1f5f9; color: #64748b; }
 
+#content {
+  overflow: auto;
+}
+
 /* ── Detail layout ─────────────────────────────────────────── */
 .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
 @media (max-width: 700px) { .detail-grid { grid-template-columns: 1fr; } }
