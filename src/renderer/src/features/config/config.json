@@ -4,9 +4,9 @@
   "realSenseAddressURL": "ws://localhost:9001",
   "casPD2AddressURL": "http://localhost:3030",
   "unit": "kg",
-  "googleMapsApiKey": "",
+  "googleMapsApiKey": "AIzaSyBEb7tA6vRDZnGxouOP10N0wtSb8CYz84k",
   "revAddressBaseURL": "https://api.revaddress.com",
-  "revAddressApiKey": "",
+  "revAddressApiKey": "rv_live_154bd5db96fa58175e8eafff8cf448ac",
   "onlypersonnames": true,
   "headerTitle": "MeldPOST",
   "colors": {
