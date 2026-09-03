@@ -1,6 +1,6 @@
 {
   "name": "meldpost-electron",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "MeldPOST Express - Automated USPS self-service shipping kiosk",
   "main": "./out/main/index.js",
   "author": "meldCX",
