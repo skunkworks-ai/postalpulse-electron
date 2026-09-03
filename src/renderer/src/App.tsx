@@ -317,6 +317,11 @@ const App = ({ appName = 'MeldPOST Booking' }: AppProps): React.JSX.Element => {
                 onNext={() => setCurrentStep(STEPS.PAYMENT)}
                 onEditSender={() => { setManualAddressEntryForStep(STEPS.SENDER, true); setCurrentStep(STEPS.SENDER) }}
                 onEditRecipient={() => { setManualAddressEntryForStep(STEPS.RECIPIENT, true); setCurrentStep(STEPS.RECIPIENT) }}
+                onRateSelected={(rate) => {
+                  setDetectedParcel((prev) =>
+                    prev ? { ...prev, price: rate.price + prev.boxPrice } : prev
+                  )
+                }}
               />
             )}
 

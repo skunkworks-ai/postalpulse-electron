@@ -14,7 +14,7 @@ const MAX_NAME_LENGTH = 100
 
 export const isPersonFullName = (name: string): boolean => {
 
-  console.log(name)
+  // console.log(name)
 
    if (!name) {
     return false

@@ -184,6 +184,7 @@ const DetectionStep = ({ onSuccess }: DetectionStepProps): React.JSX.Element => 
         actualDimensions: formatDimensions(dimensions),
         actualDimensionsMetric: formatDimensionsInMeters(dimensions.length, dimensions.width, dimensions.height),
         weight,
+        boxPrice: size.price,
         price: size.price
       }
       onSuccess(parcel)
@@ -223,6 +224,7 @@ const DetectionStep = ({ onSuccess }: DetectionStepProps): React.JSX.Element => 
       actualDimensions: `${sampleSize.maxL}" x ${sampleSize.maxW}" x ${sampleSize.maxH}"`,
       actualDimensionsMetric: formatDimensionsInMeters(sampleSize.maxL, sampleSize.maxW, sampleSize.maxH),
       weight: 3.5,
+      boxPrice: sampleSize.price,
       price: sampleSize.price
     }
     onSuccess(sampleParcel)

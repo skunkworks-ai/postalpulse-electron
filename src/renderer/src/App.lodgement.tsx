@@ -175,6 +175,7 @@ const LodgementApp = (): React.JSX.Element => {
       isValidated: true
     })
 
+    const resolvedPrice = Number.isFinite(price) ? price : box.price
     setDetectedParcel({
       size: box.name,
       dimensions: `${box.maxL}" x ${box.maxW}" x ${box.maxH}"`,
@@ -182,7 +183,8 @@ const LodgementApp = (): React.JSX.Element => {
       actualDimensions: actualDimensions || `${box.maxL}" x ${box.maxW}" x ${box.maxH}"`,
       actualDimensionsMetric,
       weight: Number.isFinite(weight) ? weight : 0,
-      price: Number.isFinite(price) ? price : box.price
+      boxPrice: box.price,
+      price: resolvedPrice
     })
   }
 

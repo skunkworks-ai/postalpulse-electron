@@ -109,20 +109,6 @@ const ConfirmationStep = ({
             </div>
           </div>
 
-          <div className="pt-10 flex justify-between items-end border-b border-slate-100 pb-8 mt-4">
-            <div className="bg-emerald-50 text-emerald-600 px-4 py-1.5 rounded-lg text-[10px] font-black border border-emerald-100 uppercase">
-              {copy.rateConfirmed}
-            </div>
-            <div>
-              <p className="font-bold uppercase text-[10px] text-slate-400 tracking-[0.2em]">
-                {copy.totalTariff}
-              </p>
-              <p className="text-5xl font-black text-(--pp-brand-primary) mt-1 tracking-tighter">
-                ${detectedParcel?.price.toFixed(2)}
-              </p>
-            </div>
-          </div>
-
           <div className="grid grid-cols-1 gap-4 mt-6">
             <KioskButton
               onClick={onConfirm}

@@ -191,33 +191,47 @@ app.whenReady().then(() => {
     })
   })
 
-  // Proxy booking server requests through the main process to avoid
-  // renderer-side CORS restrictions when calling external APIs.
-  ipcMain.handle('booking-server-get', (_event, opts: MapsRequestOpts): Promise<unknown> => {
-    return new Promise((resolve, reject) => {
-      const { url, method = 'GET', headers = {}, body } = opts
-      const request = net.request({ url, method })
-      for (const [key, val] of Object.entries(headers)) {
-        request.setHeader(key, val)
-      }
-
-      let responseBody = ''
-      request.on('response', (response) => {
-        response.on('data', (chunk) => {
-          responseBody += chunk.toString()
-        })
-        response.on('end', () => {
-          try {
-            resolve(JSON.parse(responseBody))
-          } catch {
-            reject(new Error('Failed to parse booking server response'))
-          }
-        })
-      })
-      request.on('error', (err) => reject(err))
-      if (body) request.write(body)
-      request.end()
+  // Proxy booking server / external API requests through the main process to
+  // avoid renderer-side CORS. Use Node fetch (not Chromium net.request) so
+  // HTTPS POSTs to third-party APIs (e.g. RevAddress) do not fail with
+  // net::ERR_CONNECTION_CLOSED.
+  ipcMain.handle('booking-server-get', async (_event, opts: MapsRequestOpts): Promise<unknown> => {
+    const { url, method = 'GET', headers = {}, body } = opts
+    console.log('[booking-server-get] request', {
+      url,
+      method,
+      headers: Object.keys(headers),
+      bodyPreview: body ? body.slice(0, 500) : undefined
     })
+
+    const response = await fetch(url, {
+      method,
+      headers,
+      ...(body ? { body } : {})
+    })
+
+    const responseBody = await response.text()
+    console.log('[booking-server-get] response', {
+      url,
+      status: response.status,
+      ok: response.ok,
+      bodyPreview: responseBody.slice(0, 2000)
+    })
+
+    try {
+      const parsed = JSON.parse(responseBody) as unknown
+      // Preserve HTTP status for callers that inspect it (e.g. VerifyStep debug).
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        return { ...(parsed as Record<string, unknown>), __httpStatus: response.status, __httpOk: response.ok }
+      }
+      return parsed
+    } catch {
+      throw new Error(
+        response.ok
+          ? 'Failed to parse booking server response'
+          : `Booking server request failed (${response.status}): ${responseBody.slice(0, 200)}`
+      )
+    }
   })
 
   // Transaction logging

@@ -5,6 +5,8 @@
   "casPD2AddressURL": "http://localhost:3030",
   "unit": "kg",
   "googleMapsApiKey": "",
+  "revAddressBaseURL": "https://api.revaddress.com",
+  "revAddressApiKey": "",
   "onlypersonnames": true,
   "headerTitle": "MeldPOST",
   "colors": {

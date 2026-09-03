@@ -10,6 +10,8 @@ import {
   setCasPD2AddressURL,
   setUnit,
   setGoogleMapsApiKey,
+  setRevAddressBaseURL,
+  setRevAddressApiKey,
   setHeaderTitle
 } from '../../features/config/configSlice'
 import ControlledInput from '../../contexts/KeyboardProvider/ControlledInput'
@@ -20,7 +22,15 @@ interface ConfigPageProps {
 
 interface Field {
   label: string
-  key: keyof import('../../features/config/configSlice').ConfigState
+  key:
+    | 'melpostBookingServerURL'
+    | 'unisonAddressURL'
+    | 'realSenseAddressURL'
+    | 'casPD2AddressURL'
+    | 'googleMapsApiKey'
+    | 'revAddressBaseURL'
+    | 'revAddressApiKey'
+    | 'headerTitle'
   icon: React.ReactNode
   description: string
 }
@@ -57,6 +67,18 @@ const FIELDS: Field[] = [
     description: 'Places Autocomplete & Address Validation'
   },
   {
+    label: 'RevAddress Base URL',
+    key: 'revAddressBaseURL',
+    icon: <Server size={18} />,
+    description: 'USPS rates API gateway'
+  },
+  {
+    label: 'RevAddress API Key',
+    key: 'revAddressApiKey',
+    icon: <Globe size={18} />,
+    description: 'X-API-Key for RevAddress domestic rates'
+  },
+  {
     label: 'Header Title',
     key: 'headerTitle',
     icon: <Type size={18} />,
@@ -75,6 +97,8 @@ const ConfigPage: React.FC<ConfigPageProps> = ({ onClose }) => {
     casPD2AddressURL: config.casPD2AddressURL,
     unit: config.unit,
     googleMapsApiKey: config.googleMapsApiKey,
+    revAddressBaseURL: config.revAddressBaseURL,
+    revAddressApiKey: config.revAddressApiKey,
     headerTitle: config.headerTitle
   })
 
@@ -87,6 +111,8 @@ const ConfigPage: React.FC<ConfigPageProps> = ({ onClose }) => {
     dispatch(setCasPD2AddressURL(values.casPD2AddressURL))
     dispatch(setUnit(values.unit as 'lb' | 'kg'))
     dispatch(setGoogleMapsApiKey(values.googleMapsApiKey))
+    dispatch(setRevAddressBaseURL(values.revAddressBaseURL))
+    dispatch(setRevAddressApiKey(values.revAddressApiKey))
     dispatch(setHeaderTitle(values.headerTitle))
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)

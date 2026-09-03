@@ -25,5 +25,14 @@ export interface ParcelData {
   actualDimensions: string
   actualDimensionsMetric: string
   weight: number
+  /** BOX_SPECS packaging fee set at detection — never overwritten by postage */
+  boxPrice: number
+  /** Payable total (box + selected postage once chosen) */
   price: number
+}
+
+export interface ShippingRate {
+  service: string
+  price: number
+  deliveryDays: number
 }

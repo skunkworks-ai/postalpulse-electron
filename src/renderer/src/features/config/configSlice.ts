@@ -14,6 +14,10 @@ export interface ConfigState {
   unit: 'lb' | 'kg'
   /** Google Maps API key for Places Autocomplete & Address Validation */
   googleMapsApiKey: string
+  /** RevAddress API base URL (USPS rates, etc.) */
+  revAddressBaseURL: string
+  /** RevAddress API key */
+  revAddressApiKey: string
   /** Restrict sender/recipient names to person-like full names only */
   onlypersonnames: boolean
   /** App header title */
@@ -67,6 +71,12 @@ const configSlice = createSlice({
     setGoogleMapsApiKey(state, action: PayloadAction<string>) {
       state.googleMapsApiKey = action.payload
     },
+    setRevAddressBaseURL(state, action: PayloadAction<string>) {
+      state.revAddressBaseURL = action.payload
+    },
+    setRevAddressApiKey(state, action: PayloadAction<string>) {
+      state.revAddressApiKey = action.payload
+    },
     setOnlyPersonNames(state, action: PayloadAction<boolean>) {
       state.onlypersonnames = action.payload
     },
@@ -84,6 +94,8 @@ export const {
   setCasPD2AddressURL,
   setUnit,
   setGoogleMapsApiKey,
+  setRevAddressBaseURL,
+  setRevAddressApiKey,
   setOnlyPersonNames,
   setHeaderTitle
 } = configSlice.actions

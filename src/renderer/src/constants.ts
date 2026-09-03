@@ -109,7 +109,7 @@ export const LODGEMENT_STEPS = {
   SUCCESS: 'SUCCESS'
 }
 
-export const IDLE_TIMEOUT_SEC: number = 60
+export const IDLE_TIMEOUT_SEC: number = 0
 export const COUNTDOWN_SEC: number = 10
 export const USER_ACTIVITY_EVENT = 'meldpost:user-activity'
 

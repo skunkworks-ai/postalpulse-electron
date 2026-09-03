@@ -534,6 +534,15 @@ const BookingApp = (): React.JSX.Element => {
                   setManualAddressEntryForStep(STEPS.RECIPIENT, true)
                   setCurrentStep(STEPS.RECIPIENT)
                 }}
+                onRateSelected={(rate) => {
+                  setDetectedParcel((prev) => {
+                    if (!prev) return prev
+                    return { ...prev, price: rate.price + prev.boxPrice }
+                  })
+                  if (detectedParcel) {
+                    updateBookingTransaction({ parcelPrice: rate.price + detectedParcel.boxPrice })
+                  }
+                }}
               />
             )}
 
