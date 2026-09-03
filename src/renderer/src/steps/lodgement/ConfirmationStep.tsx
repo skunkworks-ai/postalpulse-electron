@@ -92,7 +92,7 @@ const ConfirmationStep = ({
                 <p className="text-lg font-black text-(--pp-brand-primary)">
                   {detectedParcel?.actualDimensions}
                 </p>
-                <p className="mt-1 text-[11px] font-bold text-slate-400 uppercase tracking-[0.16em]">
+                <p className="mt-1 text-[11px] font-bold text-slate-400 tracking-[0.16em]">
                   {detectedParcel?.actualDimensionsMetric}
                 </p>
               </div>
@@ -125,7 +125,7 @@ const ConfirmationStep = ({
                 <p className="text-lg font-black text-(--pp-brand-primary)">
                   {detectedParcel?.dimensions}
                 </p>
-                <p className="mt-1 text-[11px] font-bold text-slate-400 uppercase tracking-[0.16em]">
+                <p className="mt-1 text-[11px] font-bold text-slate-400 tracking-[0.16em]">
                   {detectedParcel?.dimensionsMetric}
                 </p>
               </div>

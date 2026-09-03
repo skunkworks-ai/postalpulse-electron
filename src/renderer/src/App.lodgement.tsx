@@ -16,8 +16,7 @@ import type { RootState } from './store'
 import { logSession } from './utils/transactionLogger'
 import type { AddressRecord, ParcelData } from './types'
 
-const METER_TO_INCH = 39.37007874
-const INCH_TO_METER = 0.0254
+const INCH_TO_MM = 25.4
 const BARCODE_CLEAR_TIMEOUT_MS = 500
 
 interface LodgementTransaction {
@@ -67,8 +66,8 @@ const parseUSAddress = (fullAddress: string): { street: string; city: string; st
   }
 }
 
-const formatDimensionsInMeters = (length: number, width: number, height: number): string =>
-  `${(length * INCH_TO_METER).toFixed(2)}m x ${(width * INCH_TO_METER).toFixed(2)}m x ${(height * INCH_TO_METER).toFixed(2)}m`
+const formatDimensionsInMillimeters = (length: number, width: number, height: number): string =>
+  `${(length * INCH_TO_MM).toFixed(0)}mm x ${(width * INCH_TO_MM).toFixed(0)}mm x ${(height * INCH_TO_MM).toFixed(0)}mm`
 
 const LodgementApp = (): React.JSX.Element => {
   const appName = 'MeldPOST Lodgement'
@@ -150,8 +149,8 @@ const LodgementApp = (): React.JSX.Element => {
     const actualDimensions = (transaction.parcelActualDimensions ?? '').trim()
     const parsedActualDimensions = parseDimensionsInInches(actualDimensions)
     const actualDimensionsMetric = parsedActualDimensions
-      ? formatDimensionsInMeters(parsedActualDimensions[0], parsedActualDimensions[1], parsedActualDimensions[2])
-      : formatDimensionsInMeters(box.maxL, box.maxW, box.maxH)
+      ? formatDimensionsInMillimeters(parsedActualDimensions[0], parsedActualDimensions[1], parsedActualDimensions[2])
+      : formatDimensionsInMillimeters(box.maxL, box.maxW, box.maxH)
 
     const senderAddress = parseUSAddress(transaction.senderAddress ?? '')
     const recipientAddress = parseUSAddress(transaction.recipientAddress ?? '')
@@ -178,7 +177,7 @@ const LodgementApp = (): React.JSX.Element => {
     setDetectedParcel({
       size: box.name,
       dimensions: `${box.maxL}" x ${box.maxW}" x ${box.maxH}"`,
-      dimensionsMetric: formatDimensionsInMeters(box.maxL, box.maxW, box.maxH),
+      dimensionsMetric: formatDimensionsInMillimeters(box.maxL, box.maxW, box.maxH),
       actualDimensions: actualDimensions || `${box.maxL}" x ${box.maxW}" x ${box.maxH}"`,
       actualDimensionsMetric,
       weight: Number.isFinite(weight) ? weight : 0,

@@ -28,7 +28,7 @@ interface RealSenseMessage {
 }
 
 const METER_TO_INCH = 39.37007874
-const INCH_TO_METER = 0.0254
+const INCH_TO_MM = 25.4
 const REALSENSE_TIMEOUT_MS = 5000
 const DETECTION_DURATION_MS = 2000
 const DETECTION_PROGRESS_INTERVAL_MS = 100
@@ -85,8 +85,8 @@ const getDimensionsFromMessage = (message: RealSenseMessage): RealSenseDimension
 const formatDimensions = (dimensions: RealSenseDimensions): string =>
   `${dimensions.length.toFixed(1)}" x ${dimensions.width.toFixed(1)}" x ${dimensions.height.toFixed(1)}"`
 
-const formatDimensionsInMeters = (length: number, width: number, height: number): string =>
-  `${(length * INCH_TO_METER).toFixed(2)}m x ${(width * INCH_TO_METER).toFixed(2)}m x ${(height * INCH_TO_METER).toFixed(2)}m`
+const formatDimensionsInMillimeters = (length: number, width: number, height: number): string =>
+  `${(length * INCH_TO_MM).toFixed(0)}mm x ${(width * INCH_TO_MM).toFixed(0)}mm x ${(height * INCH_TO_MM).toFixed(0)}mm`
 
 const DetectionStep = ({ onSuccess }: DetectionStepProps): React.JSX.Element => {
   const unisonAddressURL = useSelector((state: RootState) => state.config.unisonAddressURL)
@@ -180,9 +180,9 @@ const DetectionStep = ({ onSuccess }: DetectionStepProps): React.JSX.Element => 
       const parcel: ParcelData = {
         size: size.name,
         dimensions: `${size.maxL}" x ${size.maxW}" x ${size.maxH}"`,
-        dimensionsMetric: formatDimensionsInMeters(size.maxL, size.maxW, size.maxH),
+        dimensionsMetric: formatDimensionsInMillimeters(size.maxL, size.maxW, size.maxH),
         actualDimensions: formatDimensions(dimensions),
-        actualDimensionsMetric: formatDimensionsInMeters(dimensions.length, dimensions.width, dimensions.height),
+        actualDimensionsMetric: formatDimensionsInMillimeters(dimensions.length, dimensions.width, dimensions.height),
         weight,
         price: size.price
       }
@@ -219,9 +219,9 @@ const DetectionStep = ({ onSuccess }: DetectionStepProps): React.JSX.Element => 
     const sampleParcel: ParcelData = {
       size: sampleSize.name,
       dimensions: `${sampleSize.maxL}" x ${sampleSize.maxW}" x ${sampleSize.maxH}"`,
-      dimensionsMetric: formatDimensionsInMeters(sampleSize.maxL, sampleSize.maxW, sampleSize.maxH),
+      dimensionsMetric: formatDimensionsInMillimeters(sampleSize.maxL, sampleSize.maxW, sampleSize.maxH),
       actualDimensions: `${sampleSize.maxL}" x ${sampleSize.maxW}" x ${sampleSize.maxH}"`,
-      actualDimensionsMetric: formatDimensionsInMeters(sampleSize.maxL, sampleSize.maxW, sampleSize.maxH),
+      actualDimensionsMetric: formatDimensionsInMillimeters(sampleSize.maxL, sampleSize.maxW, sampleSize.maxH),
       weight: 3.5,
       price: sampleSize.price
     }
